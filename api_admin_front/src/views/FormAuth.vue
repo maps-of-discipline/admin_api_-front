@@ -22,7 +22,7 @@
   
             <!-- Поле логина -->
             <v-text-field
-              v-model="form.username"
+              v-model="form.login"
               label="Логин"
               placeholder="Введите логин"
               required
@@ -70,8 +70,9 @@ export default defineComponent({
   name: 'LoginPage',
   setup() {
     const form = reactive({
-      username: '',
+      login: '',
       password: '',
+      service_name: 'admin_api',
     });
 
     const showPassword = ref(false);
@@ -83,14 +84,15 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        const response = await fetch('http://188.120.229.36:8001/api/v1/user/login', {
+        const response = await fetch('http://188.120.229.36:8001/api/v1/users/login', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: form.username,
+            login: form.login,
             password: form.password,
+            service_name: form.service_name,
           }),
         });
 
