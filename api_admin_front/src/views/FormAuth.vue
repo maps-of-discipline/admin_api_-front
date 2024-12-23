@@ -16,7 +16,7 @@
 
             <!-- Текстовая подсказка -->
             <div class="hint-text">
-              Вход в систему аминистрирования происходит через единую учетную запись (ЕУЗ)
+              Вход в систему администрации происходит через единую учетную запись (ЕУЗ)
             </div>
 
             <!-- Поле логина -->
@@ -59,6 +59,28 @@
         </v-form>
       </v-col>
     </v-container>
+
+    <!-- Модальное окно для ввода кода -->
+    <v-dialog v-model="isModalVisible" max-width="400">
+      <v-card>
+        <v-card-title class="text-h6">Введите код подтверждения</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="verificationCode"
+            label="Код подтверждения"
+            placeholder="Введите код"
+            required
+            outlined
+            dense
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="submitVerificationCode">Подтвердить</v-btn>
+          <v-btn text @click="isModalVisible = false">Отмена</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -78,6 +100,8 @@ export default defineComponent({
     });
 
     const showPassword = ref(false);
+    const isModalVisible = ref(false);
+    const verificationCode = ref('');
     const router = useRouter();
 
     const togglePasswordVisibility = () => {
@@ -94,18 +118,34 @@ export default defineComponent({
 
         console.log('Аутентификация успешна:', response.data);
 
-        // Сохраняем токен и данные пользователя, если "Запомнить меня" включен
+        // Показываем модальное окно для ввода кода подтверждения
+        isModalVisible.value = true;
+      } catch (error) {
+        console.error('Ошибка при аутентификации:', error);
+      }
+    };
+
+    const submitVerificationCode = async () => {
+      try {
+        const response = await axios.post('http://188.120.229.36:8001/api/v1/users/verification_auth_code', {
+          login: form.login,
+          code: verificationCode.value,
+        });
+
+        console.log('Код подтверждения принят:', response.data);
+
+        // Сохраняем токен и данные пользователя
         if (form.rememberMe) {
           localStorage.setItem('authToken', response.data.token);
         } else {
           sessionStorage.setItem('authToken', response.data.token);
         }
 
-        // Редирект на основную страницу
-        router.push({ name: 'MainPage' });
-
+        // Закрываем модальное окно и перенаправляем на страницу работы с пользователями
+        isModalVisible.value = false;
+        router.push({ name: 'UserWork' }); // Переход на маршрут UserWork
       } catch (error) {
-        console.error('Ошибка при аутентификации:', error);
+        console.error('Ошибка при подтверждении кода:', error);
       }
     };
 
@@ -114,6 +154,9 @@ export default defineComponent({
       showPassword,
       togglePasswordVisibility,
       handleSubmit,
+      isModalVisible,
+      verificationCode,
+      submitVerificationCode,
     };
   },
 });
@@ -121,7 +164,7 @@ export default defineComponent({
 
 <style scoped>
 .form-background {
-  background-color: #3A3A3A; /* Фон страницы */
+  background-color: #3A3A3A; 
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -137,8 +180,8 @@ export default defineComponent({
 }
 
 .v-card {
-  background-color: #2E2E2E; /* Фон формы */
-  border-radius: 12px; /* Закругленные углы */
+  background-color: #2E2E2E; 
+  border-radius: 12px; 
   padding: 20px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -167,7 +210,7 @@ export default defineComponent({
 }
 
 .v-text-field {
-  background-color: #2E2E2E; /* Фон полей */
+  background-color: #2E2E2E; 
   border-radius: 8px;
 }
 
