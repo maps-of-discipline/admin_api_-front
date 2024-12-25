@@ -4,22 +4,22 @@
       <v-col cols="12" sm="500" md="300" class="mx-auto">
         <v-form @submit.prevent="handleSubmit">
           <v-card class="pa-5" outlined>
-            <!-- Логотип -->
+       
             <div class="logo-placeholder">
               <v-img src="../styles/img/изображение_2024-12-15_174821888.png" alt="Логотип" max-height="100" contain></v-img>
             </div>
 
-            <!-- Заголовок -->
+            
             <v-card-title class="text-h5 justify-center">
               Добро пожаловать!
             </v-card-title>
 
-            <!-- Текстовая подсказка -->
+            
             <div class="hint-text">
               Вход в систему администрации происходит через единую учетную запись (ЕУЗ)
             </div>
 
-            <!-- Поле логина -->
+           
             <v-text-field
               v-model="form.login"
               label="Логин"
@@ -30,7 +30,7 @@
               class="mb-4"
             />
 
-            <!-- Поле пароля -->
+           
             <v-text-field
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
@@ -44,14 +44,14 @@
               @click:append-inner="togglePasswordVisibility"
             />
 
-            <!-- Чекбокс "Запомнить меня" -->
+            
             <v-checkbox
               v-model="form.rememberMe"
               label="Запомнить меня"
               class="mb-4"
             ></v-checkbox>
 
-            <!-- Кнопка "Войти" -->
+           
             <v-btn type="submit" color="primary" block class="mt-4">
               Войти
             </v-btn>
@@ -60,7 +60,7 @@
       </v-col>
     </v-container>
 
-    <!-- Модальное окно для ввода кода -->
+    
     <v-dialog v-model="isModalVisible" max-width="400">
       <v-card>
         <v-card-title class="text-h6">Введите код подтверждения</v-card-title>
@@ -77,7 +77,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" @click="submitVerificationCode">Подтвердить</v-btn>
-          <v-btn text @click="isModalVisible = false">Отмена</v-btn>
+          <v-btn  @click="isModalVisible = false">Отмена</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -96,7 +96,7 @@ export default defineComponent({
       login: '',
       password: '',
       rememberMe: false,
-      service_name: 'admin_api',
+      service_name: 'kd_maps',
     });
 
     const showPassword = ref(false);
@@ -118,7 +118,7 @@ export default defineComponent({
 
         console.log('Аутентификация успешна:', response.data);
 
-        // Показываем модальное окно для ввода кода подтверждения
+        
         isModalVisible.value = true;
       } catch (error) {
         console.error('Ошибка при аутентификации:', error);
@@ -134,16 +134,16 @@ export default defineComponent({
 
         console.log('Код подтверждения принят:', response.data);
 
-        // Сохраняем токен и данные пользователя
+        
         if (form.rememberMe) {
           localStorage.setItem('authToken', response.data.token);
         } else {
           sessionStorage.setItem('authToken', response.data.token);
         }
 
-        // Закрываем модальное окно и перенаправляем на страницу работы с пользователями
+        
         isModalVisible.value = false;
-        router.push({ name: 'UserWork' }); // Переход на маршрут UserWork
+        router.push({ name: "UserWork" as "/"}); 
       } catch (error) {
         console.error('Ошибка при подтверждении кода:', error);
       }

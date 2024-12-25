@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import MainPage from '../views/MainPage.vue';
 import LoginPage from '../views/FormAuth.vue';
 import UserWork from '../views/UserWork.vue';
+import AuthService from '../views/AuthService.vue';
 
 const routes = [
   {
@@ -14,10 +15,15 @@ const routes = [
     name: 'UserWork',
     component: UserWork,
   },
+  {
+    path: '/loginServise',
+    name: 'AuthService',
+    component: AuthService,
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL || '/'),
   routes,
 });
 
