@@ -73,7 +73,7 @@
                   multiple
                   outlined
                   dense
-                  @change="(newRoles) => updateRoles(item.id, newRoles)"
+                  @change="(newRoles: string[]) => updateRoles(item.id, newRoles)"
                 ></v-select>
               </div>
               <div v-else>{{ item.role }}</div>
@@ -145,6 +145,11 @@ export default defineComponent({
     const projectToDeleteName = ref<string | null>(null);
 
     const creatingProject = ref(false);
+    
+    
+    const addRole = async (a: string, b: string) => {console.log("addRole not implemented")};
+    const removeRole = async (a: string, b: string) => {console.log("removeRole not implemented")};
+
 
     const headers = [
       { text: 'Имя', value: 'first_name' },
@@ -270,7 +275,7 @@ export default defineComponent({
       try {
         const currentRoles = users.value.find(user => user.id === userId)?.role || [];
         const rolesToAdd = newRoles.filter(role => !currentRoles.includes(role));
-        const rolesToRemove = currentRoles.filter(role => !newRoles.includes(role));
+        const rolesToRemove = currentRoles.filter((role: string)  => !newRoles.includes(role));
 
         for (const role of rolesToAdd) {
           await addRole(userId, role);
