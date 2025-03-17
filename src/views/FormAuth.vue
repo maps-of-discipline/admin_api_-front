@@ -4,22 +4,15 @@
       <v-col cols="12" sm="500" md="300" class="mx-auto">
         <v-form @submit.prevent="handleSubmit">
           <v-card class="pa-5" outlined>
-       
             <div class="logo-placeholder">
               <v-img src="../styles/img/изображение_2024-12-15_174821888.png" alt="Логотип" max-height="100" contain></v-img>
             </div>
-
-            
             <v-card-title class="text-h5 justify-center">
               Добро пожаловать!
             </v-card-title>
-
-            
             <div class="hint-text">
               Вход в систему администрации происходит через единую учетную запись (ЕУЗ)
             </div>
-
-           
             <v-text-field
               v-model="form.login"
               label="Логин"
@@ -29,8 +22,6 @@
               dense
               class="mb-4"
             />
-
-           
             <v-text-field
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
@@ -43,24 +34,18 @@
               class="mb-4"
               @click:append-inner="togglePasswordVisibility"
             />
-
-            
             <v-checkbox
               v-model="form.rememberMe"
               label="Запомнить меня"
               class="mb-4"
             ></v-checkbox>
-
-           
-            <v-btn type="submit" color="primary" block class="mt-4">
+            <v-btn :loading="isLoading" type="submit" color="primary" block class="mt-4">
               Войти
             </v-btn>
           </v-card>
         </v-form>
       </v-col>
     </v-container>
-
-    
     <v-dialog v-model="isModalVisible" max-width="400">
       <v-card>
         <v-card-title class="text-h6">Введите код подтверждения</v-card-title>
@@ -72,12 +57,14 @@
             required
             outlined
             dense
+            :error="verificationError"
+            :error-messages="verificationError ? 'Неверный код подтверждения' : ''"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" @click="submitVerificationCode">Подтвердить</v-btn>
-          <v-btn  @click="isModalVisible = false">Отмена</v-btn>
+          <v-btn @click="isModalVisible = false">Отмена</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -102,6 +89,8 @@ export default defineComponent({
     const showPassword = ref(false);
     const isModalVisible = ref(false);
     const verificationCode = ref('');
+    const verificationError = ref(false);
+    const isLoading = ref(false);
     const router = useRouter();
 
     const togglePasswordVisibility = () => {
@@ -109,6 +98,7 @@ export default defineComponent({
     };
 
     const handleSubmit = async () => {
+      isLoading.value = true;
       try {
         const response = await axios.post('http://188.120.229.36:8001/api/v1/users/login', {
           login: form.login,
@@ -117,11 +107,11 @@ export default defineComponent({
         });
 
         console.log('Аутентификация успешна:', response.data);
-
-        
         isModalVisible.value = true;
       } catch (error) {
         console.error('Ошибка при аутентификации:', error);
+      } finally {
+        isLoading.value = false;
       }
     };
 
@@ -133,19 +123,19 @@ export default defineComponent({
         });
 
         console.log('Код подтверждения принят:', response.data);
+        verificationError.value = false;
 
-        
         if (form.rememberMe) {
           localStorage.setItem('authToken', response.data.token);
         } else {
           sessionStorage.setItem('authToken', response.data.token);
         }
 
-        
         isModalVisible.value = false;
-        router.push({ name: "UserWork" as "/"}); 
+        router.push({ name: 'UserWork' as '/' });
       } catch (error) {
         console.error('Ошибка при подтверждении кода:', error);
+        verificationError.value = true;
       }
     };
 
@@ -156,7 +146,9 @@ export default defineComponent({
       handleSubmit,
       isModalVisible,
       verificationCode,
+      verificationError,
       submitVerificationCode,
+      isLoading,
     };
   },
 });

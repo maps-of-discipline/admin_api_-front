@@ -6,7 +6,6 @@
   <<v-app>
     <header class="header">
       <v-app-bar dark>
-        <!-- Выпадающее меню для выбора проекта -->
         <v-select
           v-model="selectedProject"
           :items="projects"
@@ -15,7 +14,6 @@
           outlined
         ></v-select>
 
-        <!-- Кнопки переключения страниц -->
         <v-btn-toggle class="page-toggle">
           <v-btn :to="'/main'" router>
             Заявки
@@ -71,7 +69,6 @@
 
     </v-container>
 
-    <!-- Окно с подробной информацией о заявке -->
     <v-dialog v-model="dialog" max-width="600px">
       <v-card>
         <v-card-title class="text-h5 justify-center">

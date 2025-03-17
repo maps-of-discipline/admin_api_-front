@@ -96,16 +96,15 @@ export default defineComponent({
       login: "",
       password: "",
       rememberMe: false,
-      service_name: "", // service_name будет извлечен из query параметра
+      service_name: "", 
     });
 
     const showPassword = ref(false);
     const isModalVisible = ref(false);
     const verificationCode = ref("");
     const router = useRouter();
-    const route = useRoute(); // Получаем доступ к текущему маршруту
+    const route = useRoute();
 
-    // Извлекаем service_name и redirect из query параметров
     form.service_name = (route.query.service_name as string) || "";
     const redirectUrl = (route.query.return_url as string) || "/";
 
@@ -126,7 +125,6 @@ export default defineComponent({
 
         console.log("Аутентификация успешна:", response.data);
 
-        // Если все прошло успешно, показываем модальное окно для ввода кода
         isModalVisible.value = true;
       } catch (error) {
         console.error("Ошибка при аутентификации:", error);
@@ -145,23 +143,21 @@ export default defineComponent({
 
         console.log("Код подтверждения принят:", response.data);
 
-        const token = response.data.token;
+        const token = response.data.access_token;
 
-        // Сохраняем токен в хранилище в зависимости от выбора пользователя
         if (form.rememberMe) {
           localStorage.setItem("authToken", token);
         } else {
           sessionStorage.setItem("authToken", token);
         }
 
-        // Закрываем модальное окно
+        
         isModalVisible.value = false;
 
-        // Перенаправляем обратно, добавляя токен в параметрах
         const redirectWithToken = `${redirectUrl}?token=${encodeURIComponent(
           token
         )}`;
-        window.location.href = redirectWithToken;
+          window.location.href = redirectWithToken;
       } catch (error) {
         console.error("Ошибка при подтверждении кода:", error);
       }
