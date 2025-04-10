@@ -3,6 +3,7 @@ import MainPage from '../views/MainPage.vue';
 import LoginPage from '../views/FormAuth.vue';
 import UserWork from '../views/UserWork.vue';
 import AuthService from '../views/AuthService.vue';
+import AuthServiceByEmail from '../views/AuthServiceByEmail.vue';
 
 const routes = [
   {
@@ -19,6 +20,11 @@ const routes = [
     path: '/loginServise',
     name: 'AuthService',
     component: AuthService,
+  },
+  {
+    path: '/loginServise/email',
+    name: 'AuthService',
+    component: AuthServiceByEmail,
   },
 ];
 
