@@ -17,7 +17,7 @@
           >
             <div class="logo-placeholder">
               <v-img
-                src="../styles/img/изображение_2024-12-15_174821888.png"
+                src="C:\Users\user\admin_api_-front\src\styles\img\logo-white.png"
                 alt="Логотип"
                 max-height="100"
                 contain
@@ -105,9 +105,9 @@ export default defineComponent({
   name: "LoginPage",
   setup() {
     const form = reactive({
-      email: "",
+      email: '',
       rememberMe: false,
-      service_name: "",
+      service_name: 'kd_maps',
     });
 
     const login = ref('')
@@ -117,11 +117,12 @@ export default defineComponent({
 
     form.service_name = (route.query.service_name as string) || "";
     const redirectUrl = (route.query.return_url as string) || "/";
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const handleSubmit = async () => {
       try {
         const response = await axios.post(
-          "http://localhost:8001/api/v1/users/login-by-email",
+          `${baseURL}/users/login-by-email`,
           {
             email: form.email,
             service_name: form.service_name,
@@ -139,7 +140,7 @@ export default defineComponent({
     const submitVerificationCode = async () => {
       try {
         const response = await axios.post(
-          "http://localhost:8001/api/v1/users/verification_auth_code",
+          `${baseURL}/users/verification_auth_code`,
           {
             login: login.value,
             code: verificationCode.value.trim(),

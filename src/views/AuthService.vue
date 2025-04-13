@@ -6,7 +6,7 @@
           <v-card class="pa-5" outlined>
             <div class="logo-placeholder">
               <v-img
-                src="../styles/img/изображение_2024-12-15_174821888.png"
+                src="C:\Users\user\admin_api_-front\src\styles\img\logo-white.png"
                 alt="Логотип"
                 max-height="100"
                 contain
@@ -90,7 +90,7 @@ import { useRouter, useRoute } from "vue-router";
 import axios from "axios";
 
 export default defineComponent({
-  name: "LoginPage",
+  name: "AuthService",
   setup() {
     const form = reactive({
       login: "",
@@ -105,8 +105,12 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
 
+    
     form.service_name = (route.query.service_name as string) || "";
     const redirectUrl = (route.query.return_url as string) || "/";
+
+    
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const togglePasswordVisibility = () => {
       showPassword.value = !showPassword.value;
@@ -115,7 +119,7 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         const response = await axios.post(
-          "http://188.120.229.36:8001/api/v1/users/login",
+          `${baseURL}/users/login`,
           {
             login: form.login,
             password: form.password,
@@ -124,7 +128,6 @@ export default defineComponent({
         );
 
         console.log("Аутентификация успешна:", response.data);
-
         isModalVisible.value = true;
       } catch (error) {
         console.error("Ошибка при аутентификации:", error);
@@ -134,7 +137,7 @@ export default defineComponent({
     const submitVerificationCode = async () => {
       try {
         const response = await axios.post(
-          "http://188.120.229.36:8001/api/v1/users/verification_auth_code",
+          `${baseURL}/users/verification_auth_code`,
           {
             login: form.login,
             code: verificationCode.value,
@@ -151,13 +154,10 @@ export default defineComponent({
           sessionStorage.setItem("authToken", token);
         }
 
-        
         isModalVisible.value = false;
 
-        const redirectWithToken = `${redirectUrl}?token=${encodeURIComponent(
-          token
-        )}`;
-          window.location.href = redirectWithToken;
+        const redirectWithToken = `${redirectUrl}?token=${encodeURIComponent(token)}`;
+        window.location.href = redirectWithToken;
       } catch (error) {
         console.error("Ошибка при подтверждении кода:", error);
       }
@@ -175,6 +175,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped>
 .form-background {

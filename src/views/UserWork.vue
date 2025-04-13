@@ -24,7 +24,6 @@
           >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
-
           <v-btn
             color="red"
             class="header-btn"
@@ -34,6 +33,14 @@
           </v-btn>
         </div>
 
+        <div class="logo-container">
+          <img
+            src="C:\Users\user\admin_api_-front\src\styles\img\mospolytech-logo-white.png"
+            alt="Logo"
+            class="logo"
+          />
+        </div>
+
         <v-btn color="red" class="header-btn-logout" @click="logout">
           Выйти
         </v-btn>
@@ -41,8 +48,8 @@
     </header>
 
     <div class="user-management-background">
-      <v-container max-width="1000">
-        <v-card class="pa-5" outlined>
+      <v-container class="table-wrapper">
+        <v-card class="centered-table-card" outlined>
           <v-card-title class="text-h5 justify-center">
             Управление пользователями
             <v-btn icon @click="toggleEditMode">
@@ -58,8 +65,7 @@
             </v-btn>
           </v-card-title>
 
-          <!-- Новый шаблон таблицы -->
-          <v-table>
+          <v-table class="centered-table">
             <thead>
               <tr>
                 <th class="text-left">Имя</th>
@@ -96,7 +102,6 @@
         </v-card>
       </v-container>
 
-      <!-- Диалог создания проекта -->
       <v-dialog v-model="createProjectDialogVisible" max-width="400px">
         <v-card>
           <v-card-title>Создать проект</v-card-title>
@@ -104,6 +109,11 @@
             <v-text-field
               v-model="newProjectName"
               label="Название проекта"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="newProjectLogin"
+              label="Логин проекта"
               required
             ></v-text-field>
           </v-card-text>
@@ -114,12 +124,11 @@
             >
               Отмена
             </v-btn>
-            <v-btn color="primary" @click="createProject"> Создать </v-btn>
+            <v-btn color="primary" @click="createProject">Создать</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
 
-      <!-- Диалог подтверждения удаления проекта -->
       <v-dialog v-model="deleteProjectDialogVisible" max-width="400px">
         <v-card>
           <v-card-title>Удаление проекта</v-card-title>
@@ -148,18 +157,19 @@ import axios from "axios";
 export default defineComponent({
   name: "UserManagementPage",
   setup() {
+    const baseURL = import.meta.env.VITE_API_BASE_URL;
+
     const projects = ref<any[]>([]);
     const users = ref<any[]>([]);
     const roles = ref<string[]>([]);
     const selectedProject = ref<string>("");
-    const isEditMode = ref(false);
 
+    const isEditMode = ref(false);
     const createProjectDialogVisible = ref(false);
     const deleteProjectDialogVisible = ref(false);
     const newProjectName = ref("");
-    const projectToDelete = ref<string | null>(null);
+    const newProjectLogin = ref("");
     const projectToDeleteName = ref<string | null>(null);
-
     const creatingProject = ref(false);
 
     const headers = ref([
@@ -173,10 +183,7 @@ export default defineComponent({
 
     const fetchProjects = async () => {
       try {
-        const response = await axios.post(
-          "http://188.120.229.36:8001/api/v1/services/filters",
-          {}
-        );
+        const response = await axios.post(`${baseURL}/services/filters`, {});
         projects.value = response.data.data.map((project: any) => ({
           id: project.id,
           name: project.name,
@@ -189,17 +196,10 @@ export default defineComponent({
     const fetchRoles = async () => {
       if (!selectedProject.value) return;
       try {
-        const response = await axios.post(
-          "http://188.120.229.36:8001/api/v1/service-roles/filters",
-          {
-            service_name: selectedProject.value,
-          }
-        );
-        if (response.data && response.data.data) {
-          roles.value = response.data.data.map((role: any) => role.role);
-        } else {
-          console.error("Роли не найдены");
-        }
+        const response = await axios.post(`${baseURL}/service-roles/filters`, {
+          service_name: selectedProject.value,
+        });
+        roles.value = response.data.data.map((role: any) => role.role);
       } catch (error) {
         console.error("Ошибка при загрузке ролей:", error);
       }
@@ -208,22 +208,23 @@ export default defineComponent({
     const fetchUsers = async () => {
       if (!selectedProject.value) return;
       try {
-        const response = await axios.post(
-          "http://188.120.229.36:8001/api/v1/users/filters",
-          { service_name: selectedProject.value }
-        );
+        const response = await axios.post(`${baseURL}/users/filters`, {
+          service_name: selectedProject.value,
+        });
+
         const usersList = [];
 
         for (const user of response.data.data) {
           const rolesResponse = await axios.post(
-            `http://188.120.229.36:8001/api/v1/users/${user.id}/get_roles_from_service?service_name=${selectedProject.value}`
+            `${baseURL}/users/${user.id}/get_roles_from_service?service_name=${selectedProject.value}`
           );
+
           const userRoles = [];
 
           for (const role of rolesResponse.data.roles || []) {
             try {
               const roleResponse = await axios.get(
-                `http://188.120.229.36:8001/api/v1/service-roles/${role.service_roles_id}`
+                `${baseURL}/service-roles/${role.service_roles_id}`
               );
               userRoles.push(roleResponse.data.role);
             } catch (roleError) {
@@ -243,8 +244,9 @@ export default defineComponent({
             email: user.email,
             role: user.role,
             roles: userRoles,
+            userRoles: rolesResponse.data.roles || [],
           };
-          console.log(11,user.id)
+
           usersList.push(userData);
         }
 
@@ -256,16 +258,10 @@ export default defineComponent({
 
     const addRole = async (userId: string, serviceRoleId: string) => {
       try {
-        await axios.post(
-          "http://188.120.229.36:8001/api/v1/user_service_roles",
-          {
-            service_roles_id: serviceRoleId,
-            user_id: userId,
-          }
-        );
-        console.log(
-          `Роль ${serviceRoleId} успешно добавлена пользователю ${userId}`
-        );
+        await axios.post(`${baseURL}/user_service_roles`, {
+          service_roles_id: serviceRoleId,
+          user_id: userId,
+        });
       } catch (error) {
         console.error(`Ошибка добавления роли ${serviceRoleId}:`, error);
       }
@@ -274,9 +270,8 @@ export default defineComponent({
     const removeRole = async (userServiceRoleId: string) => {
       try {
         await axios.delete(
-          `http://188.120.229.36:8001/api/v1/user_service_roles/${userServiceRoleId}`
+          `${baseURL}/user_service_roles/${userServiceRoleId}`
         );
-        console.log(`Роль ${userServiceRoleId} успешно удалена`);
       } catch (error) {
         console.error(`Ошибка удаления роли ${userServiceRoleId}:`, error);
       }
@@ -285,67 +280,46 @@ export default defineComponent({
     const updateRoles = async (userId: string, newRoles: string[]) => {
       try {
         const currentUser = users.value.find((user) => user.id === userId);
-        console.log(1, userId);
-        console.log(2, users.value);
         if (!currentUser) throw new Error("Пользователь не найден");
 
         const currentRoles = currentUser.roles || [];
 
-       
         const roleMappings = await axios.post(
-          "http://188.120.229.36:8001/api/v1/service-roles/filters",
+          `${baseURL}/service-roles/filters`,
           {
             service_name: selectedProject.value,
           }
         );
 
         const roleMap = roleMappings.data.data.reduce((map: any, role: any) => {
-          map[role.role] = role.id; 
+          map[role.role] = role.id;
           return map;
         }, {});
-        console.log(3, roleMap);
 
-      
         const rolesToAdd = newRoles.filter(
           (role) => !currentRoles.includes(role)
         );
-        
         const rolesToRemove = currentRoles.filter(
           (role) => !newRoles.includes(role)
         );
-        console.log(4, rolesToAdd);
-        console.log(5, rolesToRemove);
 
-        
         for (const roleName of rolesToAdd) {
           const serviceRoleId = roleMap[roleName];
           if (serviceRoleId) {
             await addRole(userId, serviceRoleId);
-          } else {
-            console.error(
-              `Роль ${roleName} не найдена в списке доступных ролей`
-            );
           }
         }
 
-        
         for (const roleName of rolesToRemove) {
           const userRole = currentUser.userRoles.find(
             (r: any) => r.role === roleName
           );
           if (userRole && userRole.user_service_role_id) {
             await removeRole(userRole.user_service_role_id);
-          } else {
-            console.error(
-              `Роль ${roleName} не найдена для пользователя ${userId}`
-            );
           }
         }
 
-        
         currentUser.roles = newRoles;
-
-        console.log("Роли обновлены успешно!");
       } catch (error) {
         console.error("Ошибка обновления ролей:", error);
       }
@@ -362,6 +336,49 @@ export default defineComponent({
       window.location.href = "/";
     };
 
+    const openCreateProjectDialog = () => {
+      createProjectDialogVisible.value = true;
+    };
+
+    const createProject = async () => {
+  if (!newProjectName.value.trim() || !newProjectLogin.value.trim()) return;
+
+  creatingProject.value = true;
+  try {
+    await axios.post(`${baseURL}/services`, {
+      name: newProjectLogin.value, 
+      verbose_name: newProjectName.value, 
+    });
+    createProjectDialogVisible.value = false;
+    newProjectName.value = "";
+    newProjectLogin.value = "";
+    await fetchProjects();
+  } catch (error) {
+    console.error("Ошибка создания проекта:", error);
+  } finally {
+    creatingProject.value = false;
+  }
+};
+
+
+    const confirmDeleteProject = (projectName: string) => {
+      projectToDeleteName.value = projectName;
+      deleteProjectDialogVisible.value = true;
+    };
+
+    const deleteProject = async () => {
+      if (!projectToDeleteName.value) return;
+
+      try {
+        await axios.delete(`${baseURL}/services/${projectToDeleteName.value}`);
+        deleteProjectDialogVisible.value = false;
+        selectedProject.value = "";
+        await fetchProjects();
+      } catch (error) {
+        console.error("Ошибка удаления проекта:", error);
+      }
+    };
+
     onMounted(() => {
       fetchProjects();
     });
@@ -374,7 +391,6 @@ export default defineComponent({
       createProjectDialogVisible,
       deleteProjectDialogVisible,
       newProjectName,
-      projectToDelete,
       projectToDeleteName,
       headers,
       fetchUsers,
@@ -383,6 +399,11 @@ export default defineComponent({
       updateRoles,
       logout,
       isEditMode,
+      openCreateProjectDialog,
+      createProject,
+      confirmDeleteProject,
+      deleteProject,
+      creatingProject,
     };
   },
 });
@@ -393,12 +414,24 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+}
+
+.logo-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.logo {
+  height: 60px;
 }
 
 .project-select {
@@ -446,9 +479,24 @@ export default defineComponent({
   padding: 20px;
 }
 
-.header-content .header-btn {
-  margin-left: 0;
+.table-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  margin-top: 110px;
 }
+
+.centered-table-card {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 10px;
+}
+
+.centered-table {
+  width: 100%;
+}
+
 .v-data-table {
   table-layout: auto;
 }
