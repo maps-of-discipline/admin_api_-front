@@ -6,7 +6,7 @@
           <v-select
             v-model="selectedProject"
             :items="projects"
-            item-title="name"
+            item-title="verbose_name"
             item-value="name"
             label="Выберите проект"
             class="project-select"
@@ -35,15 +35,23 @@
 
         <div class="logo-container">
           <img
-            src="C:\Users\user\admin_api_-front\src\styles\img\mospolytech-logo-white.png"
+            src="..\styles\img\mospolytech-logo-white.png"
             alt="Logo"
             class="logo"
           />
         </div>
 
-        <v-btn color="red" class="header-btn-logout" @click="logout">
-          Выйти
-        </v-btn>
+        <div
+          class="d-flex align-center"
+          style="margin-left: auto; gap: 10px; padding-right: 16px"
+        >
+          <v-btn color="yellow" class="header-btn-access" @click="handleAccess">
+            ДОСТУП
+          </v-btn>
+          <v-btn color="red" class="header-btn-logout" @click="logout">
+            ВЫЙТИ
+          </v-btn>
+        </div>
       </v-app-bar>
     </header>
 
@@ -187,6 +195,7 @@ export default defineComponent({
         projects.value = response.data.data.map((project: any) => ({
           id: project.id,
           name: project.name,
+          verbose_name: project.verbose_name, 
         }));
       } catch (error) {
         console.error("Ошибка загрузки проектов:", error);
@@ -300,7 +309,7 @@ export default defineComponent({
           (role) => !currentRoles.includes(role)
         );
         const rolesToRemove = currentRoles.filter(
-          (role) => !newRoles.includes(role)
+          (role: string) => !newRoles.includes(role)
         );
 
         for (const roleName of rolesToAdd) {
@@ -335,31 +344,33 @@ export default defineComponent({
     const logout = () => {
       window.location.href = "/";
     };
+    const handleAccess = () => {
+      window.location.href = "/admin/user/permissions";
+    };
 
     const openCreateProjectDialog = () => {
       createProjectDialogVisible.value = true;
     };
 
     const createProject = async () => {
-  if (!newProjectName.value.trim() || !newProjectLogin.value.trim()) return;
+      if (!newProjectName.value.trim() || !newProjectLogin.value.trim()) return;
 
-  creatingProject.value = true;
-  try {
-    await axios.post(`${baseURL}/services`, {
-      name: newProjectLogin.value, 
-      verbose_name: newProjectName.value, 
-    });
-    createProjectDialogVisible.value = false;
-    newProjectName.value = "";
-    newProjectLogin.value = "";
-    await fetchProjects();
-  } catch (error) {
-    console.error("Ошибка создания проекта:", error);
-  } finally {
-    creatingProject.value = false;
-  }
-};
-
+      creatingProject.value = true;
+      try {
+        await axios.post(`${baseURL}/services`, {
+          name: newProjectLogin.value,
+          verbose_name: newProjectName.value,
+        });
+        createProjectDialogVisible.value = false;
+        newProjectName.value = "";
+        newProjectLogin.value = "";
+        await fetchProjects();
+      } catch (error) {
+        console.error("Ошибка создания проекта:", error);
+      } finally {
+        creatingProject.value = false;
+      }
+    };
 
     const confirmDeleteProject = (projectName: string) => {
       projectToDeleteName.value = projectName;
@@ -391,6 +402,7 @@ export default defineComponent({
       createProjectDialogVisible,
       deleteProjectDialogVisible,
       newProjectName,
+      newProjectLogin,
       projectToDeleteName,
       headers,
       fetchUsers,
@@ -398,6 +410,7 @@ export default defineComponent({
       toggleEditMode,
       updateRoles,
       logout,
+      handleAccess,
       isEditMode,
       openCreateProjectDialog,
       createProject,
@@ -431,7 +444,7 @@ export default defineComponent({
 }
 
 .logo {
-  height: 60px;
+  height: 55px;
 }
 
 .project-select {
@@ -457,7 +470,16 @@ export default defineComponent({
 .header-btn:hover {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
 }
+.header-btn-access {
+  border: 2px solid  #fbc02d;
+  border-radius: 8px;
+  transition: all 0.3s;
+  margin-left: auto;
+}
 
+.header-btn-access:hover {
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+}
 .header-btn-logout {
   border: 2px solid #d32f2f;
   border-radius: 8px;

@@ -17,7 +17,7 @@
           >
             <div class="logo-placeholder">
               <v-img
-                src="C:\Users\user\admin_api_-front\src\styles\img\logo-white.png"
+                src="..\styles\img\logo-white.png"
                 alt="Логотип"
                 max-height="100"
                 contain

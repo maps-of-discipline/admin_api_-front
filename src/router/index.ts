@@ -4,6 +4,7 @@ import LoginPage from '../views/FormAuth.vue';
 import UserWork from '../views/UserWork.vue';
 import AuthService from '../views/AuthService.vue';
 import AuthServiceByEmail from '../views/AuthServiceByEmail.vue';
+// import PermissionsWork from '../views/PermissionsWork.vue';
 
 const routes = [
   {
@@ -23,9 +24,14 @@ const routes = [
   },
   {
     path: '/loginServise/email',
-    name: 'AuthService',
+    name: 'AuthServiceByEmail',
     component: AuthServiceByEmail,
   },
+  // {
+  //   path: '/user/permissions',
+  //   name: 'PermissionsWork',
+  //   component: PermissionsWork,
+  // },
 ];
 
 const router = createRouter({
