@@ -151,6 +151,7 @@ export default defineComponent({
         console.log("Код подтверждения принят:", response.data);
 
         const token = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
 
         if (form.rememberMe) {
           localStorage.setItem("authToken", token);
@@ -160,10 +161,8 @@ export default defineComponent({
 
         isModalVisible.value = false;
 
-        const redirectWithToken = `${redirectUrl}?token=${encodeURIComponent(
-          token,
-        )}`;
-        window.location.href = redirectWithToken;
+        const redirectWithToken = `${redirectUrl}?access=${encodeURIComponent(token)}&refresh=${encodeURIComponent(refreshToken)}`;
+        window.location.replace(redirectWithToken);
       } catch (error) {
         console.error("Ошибка при подтверждении кода:", error);
       }

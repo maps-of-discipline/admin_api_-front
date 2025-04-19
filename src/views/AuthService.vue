@@ -1,9 +1,20 @@
 <template>
   <div class="form-background">
-    <v-container class="login-form" max-width="400">
-      <v-col cols="12" sm="500" md="300" class="mx-auto">
+    <v-container
+      class="login-form"
+      max-width="400"
+    >
+      <v-col
+        cols="12"
+        sm="500"
+        md="300"
+        class="mx-auto"
+      >
         <v-form @submit.prevent="handleSubmit">
-          <v-card class="pa-5" outlined>
+          <v-card
+            class="pa-5"
+            outlined
+          >
             <div class="logo-placeholder">
               <v-img
                 src="..\styles\img\logo-white.png"
@@ -51,7 +62,12 @@
               class="mb-4"
             />
 
-            <v-btn type="submit" color="primary" block class="mt-4">
+            <v-btn
+              type="submit"
+              color="primary"
+              block
+              class="mt-4"
+            >
               Войти
             </v-btn>
           </v-card>
@@ -59,9 +75,14 @@
       </v-col>
     </v-container>
 
-    <v-dialog v-model="isModalVisible" max-width="400">
+    <v-dialog
+      v-model="isModalVisible"
+      max-width="400"
+    >
       <v-card>
-        <v-card-title class="text-h6"> Введите код подтверждения </v-card-title>
+        <v-card-title class="text-h6">
+          Введите код подтверждения
+        </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="verificationCode"
@@ -74,10 +95,15 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" @click="submitVerificationCode">
+          <v-btn
+            color="primary"
+            @click="submitVerificationCode"
+          >
             Подтвердить
           </v-btn>
-          <v-btn @click="isModalVisible = false"> Отмена </v-btn>
+          <v-btn @click="isModalVisible = false">
+            Отмена
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -143,6 +169,7 @@ export default defineComponent({
         console.log("Код подтверждения принят:", response.data);
 
         const token = response.data.access_token;
+        const refreshToken = response.data.refresh_token;
 
         if (form.rememberMe) {
           localStorage.setItem("authToken", token);
@@ -152,8 +179,8 @@ export default defineComponent({
 
         isModalVisible.value = false;
 
-        const redirectWithToken = `${redirectUrl}?token=${encodeURIComponent(token)}`;
-        window.location.href = redirectWithToken;
+        const redirectWithToken = `${redirectUrl}?access=${encodeURIComponent(token)}&refresh=${refreshToken}`;
+        window.location.replace(redirectWithToken);
       } catch (error) {
         console.error("Ошибка при подтверждении кода:", error);
       }
