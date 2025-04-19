@@ -10,7 +10,7 @@
                 alt="Логотип"
                 max-height="100"
                 contain
-              ></v-img>
+              />
             </div>
 
             <v-card-title class="text-h5 justify-center">
@@ -49,7 +49,7 @@
               v-model="form.rememberMe"
               label="Запомнить меня"
               class="mb-4"
-            ></v-checkbox>
+            />
 
             <v-btn type="submit" color="primary" block class="mt-4">
               Войти
@@ -61,7 +61,7 @@
 
     <v-dialog v-model="isModalVisible" max-width="400">
       <v-card>
-        <v-card-title class="text-h6">Введите код подтверждения</v-card-title>
+        <v-card-title class="text-h6"> Введите код подтверждения </v-card-title>
         <v-card-text>
           <v-text-field
             v-model="verificationCode"
@@ -73,11 +73,11 @@
           />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="submitVerificationCode"
-            >Подтвердить</v-btn
-          >
-          <v-btn @click="isModalVisible = false">Отмена</v-btn>
+          <v-spacer />
+          <v-btn color="primary" @click="submitVerificationCode">
+            Подтвердить
+          </v-btn>
+          <v-btn @click="isModalVisible = false"> Отмена </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -96,7 +96,7 @@ export default defineComponent({
       login: "",
       password: "",
       rememberMe: false,
-      service_name: "", 
+      service_name: "",
     });
 
     const showPassword = ref(false);
@@ -105,11 +105,9 @@ export default defineComponent({
     const router = useRouter();
     const route = useRoute();
 
-    
     form.service_name = (route.query.service_name as string) || "";
     const redirectUrl = (route.query.return_url as string) || "/";
 
-    
     const baseURL = import.meta.env.VITE_API_BASE_URL;
 
     const togglePasswordVisibility = () => {
@@ -118,14 +116,11 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        const response = await axios.post(
-          `${baseURL}/users/login`,
-          {
-            login: form.login,
-            password: form.password,
-            service_name: form.service_name,
-          }
-        );
+        const response = await axios.post(`${baseURL}/users/login`, {
+          login: form.login,
+          password: form.password,
+          service_name: form.service_name,
+        });
 
         console.log("Аутентификация успешна:", response.data);
         isModalVisible.value = true;
@@ -141,7 +136,8 @@ export default defineComponent({
           {
             login: form.login,
             code: verificationCode.value,
-          }
+            service_name: form.service_name,
+          },
         );
 
         console.log("Код подтверждения принят:", response.data);
@@ -175,7 +171,6 @@ export default defineComponent({
   },
 });
 </script>
-
 
 <style scoped>
 .form-background {
