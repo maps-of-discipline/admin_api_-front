@@ -171,6 +171,7 @@ export default defineComponent({
           {
             login: form.login,
             code: verificationCode.value,
+            service_name: form.service_name,
           }
         );
 
