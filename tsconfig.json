@@ -1,7 +1,12 @@
 {
   "files": [],
   "compilerOptions": {
-  "types": ["node"]},
+    "types": ["node", "vue"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+    }
+  },
   "references": [
     {
       "path": "./tsconfig.node.json"
