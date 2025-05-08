@@ -13,7 +13,7 @@
 
 <style scoped>
 .container {
-  background-color: #fff;
+  background-color: var(--v-theme);
   min-height: 100vh;
   padding-left: 8%;
   padding-right: 8%;

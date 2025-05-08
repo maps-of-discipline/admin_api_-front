@@ -45,7 +45,7 @@ export default defineComponent({
 .splash-screen {
   position: fixed;
   inset: 0;
-  background-color: white;
+  background-color: var(--v-theme);
   display: flex;
   justify-content: center;
   align-items: center;

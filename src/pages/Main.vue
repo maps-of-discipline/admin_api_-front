@@ -12,14 +12,14 @@
     <v-container class="projects-section" fluid>
       <h2 class="section-title">Ваши проекты</h2>
       <v-row>
-        <v-col v-for="project in filteredProjects" :key="project.id" cols="6" sm="4" md="4" lg="3"
-          @click="handleProjectClick(project)">
+        <v-col v-for="service in filteredServices" :key="service.id" cols="6" sm="4" md="4" lg="3"
+          @click="handleProjectClick(service)">
           <v-card class="project-card" rounded="xl">
             <v-card-text class="text-center">
               <v-avatar class="mb-3" size="48" color="primary" variant="tonal">
                 <v-icon>mdi-briefcase-outline</v-icon>
               </v-avatar>
-              <div class="project-title">{{ project.verbose_name }}</div>
+              <div class="project-title">{{ service.verbose_name }}</div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -33,12 +33,9 @@
 import axios from "axios";
 import { defineComponent } from "vue";
 import SplashScreen from "@/components/SplashScreen.vue";
-
-interface Project {
-  id: string | number;
-  name: string;
-  verbose_name: string;
-}
+import { type Service } from "../interfaces/service";
+import { useToast } from "../composable/useToast";
+import { getServices } from "../services/service";
 
 export default defineComponent({
   name: "UserManagementPage",
@@ -49,38 +46,38 @@ export default defineComponent({
     return {
       showSplash: true,
       search: "",
-      projects: [] as Project[],
+      services: [] as Service[],
+      ...useToast(),
     };
   },
   computed: {
-    filteredProjects(): Project[] {
+    filteredServices(): Service[] {
       const query = this.search.toLowerCase().trim();
-      return this.projects.filter(project =>
-        project.verbose_name.toLowerCase().includes(query)
+      return this.services.filter(service =>
+        service.verbose_name.toLowerCase().includes(query)
       );
     }
   },
   mounted() {
-    this.fetchProjects();
+    this.fetchServices();
   },
   methods: {
-    async fetchProjects() {
-      try {
-        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/services/filters`, {});
-        this.projects = response.data.data.map((project: { id: any; name: any; verbose_name: any; }) => ({
-          id: project.id,
-          name: project.name,
-          verbose_name: project.verbose_name,
+    async fetchServices() {
+      const response = await getServices();
+      if (response.success) {
+        this.services = (response.data as Service[]).map((service) => ({
+          id: service.id,
+          name: service.name,
+          verbose_name: service.verbose_name,
         }));
-      } catch (error) {
-        console.error("Ошибка загрузки проектов:", error);
-        alert("Ошибка загрузки данных! Пожалуйста, попробуйте снова.");
+      } else {
+        this.showToast(response.error || "Ошибка получения данных.", "error");
       }
     },
     onSplashFinished() {
       this.showSplash = false;
     },
-    handleProjectClick(project: Project) {
+    handleProjectClick(project: Service) {
       this.$router.push(`/project/${project.id}`);
     },
   }
@@ -95,7 +92,6 @@ export default defineComponent({
   justify-content: start;
   align-items: center;
   height: 100vh;
-  /* padding-top: 80px; */
 }
 
 .search-wrapper {
@@ -106,9 +102,8 @@ export default defineComponent({
 
 .search-field {
   width: 100%;
-  background-color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.153);
-  border-radius: 18px;
+  border-radius: 24px;
 }
 
 .section-title {
@@ -147,7 +142,7 @@ export default defineComponent({
   cursor: pointer;
   border-radius: 10px;
   overflow: hidden;
-  background-color: white;
+  background-color: var(--v-theme);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.153);
 }
 
@@ -181,7 +176,7 @@ export default defineComponent({
 .project-title {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--v-theme);
   word-break: break-word;
 }
 
