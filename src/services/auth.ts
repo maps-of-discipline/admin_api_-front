@@ -33,6 +33,17 @@ export async function loginByEmail(
   }
 }
 
+export async function logout(): Promise<IResponse<void>> {
+  try {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_id");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Ошибка при очистке localStorage" };
+  }
+}
+
 // Подтверждение авторизации пользователя
 export async function submit(params: ISubmitLogin): Promise<IResponse<void>> {
   try {

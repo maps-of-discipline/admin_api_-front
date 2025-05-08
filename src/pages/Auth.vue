@@ -2,13 +2,13 @@
   <div class="container">
     <v-container max-width="400">
       <v-col cols="12" sm="500" md="300" class="mx-auto">
-        <v-form ref="form" @submit.prevent="handleLogIn">
+        <v-form ref="form" @submit.prevent="handleAuth">
           <v-card class="pa-5" outlined>
             <v-card-title class="text-h5 text-center font-weight-bold">
               Добро пожаловать!
             </v-card-title>
             <v-card-text class="font-weight-light text-center">
-              Вход в систему администрации происходит через единую учетную
+              Авторизация на сервисе происходит через единую учетную
               запись
             </v-card-text>
             <v-text-field v-model="logInForm.login" label="Логин" placeholder="Введите логин" required outlined dense />
@@ -16,10 +16,11 @@
               placeholder="Введите пароль" required outlined dense
               :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
               @click:append-inner="togglePasswordVisibility" />
-            <v-btn :loading="isLoading" type="submit" color="primary" block>
+            <v-btn :loading="isLoading" :disabled="isQueryInvalid" type="submit" color="primary" block>
               Войти
             </v-btn>
-            <v-btn :disabled="isLoading" color="primary" block class="mt-4" variant="outlined" @click="loginWithoutEUZ">
+            <v-btn :disabled="isLoading || isQueryInvalid" color="primary" block class="mt-4" variant="outlined"
+              @click="authByEmail">
               Войти по почте
             </v-btn>
           </v-card>
@@ -39,7 +40,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" @click="handleSubmitLogIn">
+          <v-btn color="primary" @click="handleSubmitAuth">
             Подтвердить
           </v-btn>
           <v-btn @click="isModalVisible = false">
@@ -63,10 +64,10 @@
 import { defineComponent } from "vue";
 import { getLogInForm } from "../forms/authForms";
 import { useToast } from "../composable/useToast";
-import { login, submit } from "../services/auth";
+import { login, submit, logout } from "../services/auth";
 
 export default defineComponent({
-  name: "Auth",
+  name: "AuthPage",
   data() {
     return {
       logInForm: getLogInForm(),
@@ -76,25 +77,35 @@ export default defineComponent({
       verificationError: false,
       isLoading: false,
       serviceName: "",
+      returnUrl: "",
+      isQueryInvalid: false,
       ...useToast(),
     };
   },
   mounted() {
-    // Извлекаем параметр service_name из query
-    this.serviceName = this.$route.query.service_name as string;
-    // Устанавливаем service_name в logInForm
+    // Извлекаем параметры из query
+    this.serviceName = this.$route.query.service_name as string || "";
+    this.returnUrl = this.$route.query.return_url as string || "";
+
+    // Устанавливаем service_name в форму
     this.logInForm.service_name = this.serviceName;
+
+    // Проверяем валидность параметров
+    if (!this.serviceName || !this.returnUrl) {
+      this.isQueryInvalid = true;
+      this.showToast(
+        "Некорректная ссылка для авторизации, не полный список параметров.",
+        "error"
+      );
+    }
   },
   methods: {
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;
     },
-    async handleLogIn() {
-      console.log(this.logInForm);
+    async handleAuth() {
       const form = this.$refs.form as any;
-      if (!form.validate()) {
-        return; // Не отправляем, если форма невалидна
-      }
+      if (!form.validate()) return;
       this.isLoading = true;
       try {
         const response = await login(this.logInForm);
@@ -109,7 +120,7 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    async handleSubmitLogIn() {
+    async handleSubmitAuth() {
       try {
         const response = await submit({
           login: this.logInForm.login,
@@ -119,19 +130,29 @@ export default defineComponent({
         if (response.success) {
           this.verificationError = false;
           this.isModalVisible = false;
-          this.showToast("Успешный вход", "success");
-          this.$router.push("/");
+          this.showToast("Успешный вход!", "success");
+          this.returnUrl = `${this.returnUrl}?access=${localStorage.getItem('access_token')}&refresh=${localStorage.getItem('refresh_token')}`
+          await logout()
+          // переход на внешний сайт
+          window.location.href = this.returnUrl;
         } else {
           this.verificationError = true;
-          this.showToast(response.error || "Ошибка подтверждения", "error");
+          this.showToast(response.error || "Ошибка подтверждения.", "error");
         }
       } catch (error) {
         this.verificationError = true;
-        this.showToast("Ошибка при подтверждении кода", "error");
+        this.showToast("Ошибка при подтверждении кода.", "error");
       }
     },
-    loginWithoutEUZ() {
-      this.$router.push("/eauth");
+    authByEmail() {
+      // передаем query параметры через router.push
+      this.$router.push({
+        path: '/auth/email',
+        query: {
+          service_name: this.serviceName,
+          return_url: this.returnUrl
+        }
+      });
     },
   },
 });

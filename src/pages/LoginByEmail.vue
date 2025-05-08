@@ -2,7 +2,7 @@
   <div class="container">
     <v-container max-width="400">
       <v-col cols="12" sm="500" md="300" class="mx-auto">
-        <v-form ref="form" @submit.prevent="handleAuth">
+        <v-form ref="form" @submit.prevent="handleLogin">
           <v-card class="pa-5" outlined>
             <v-card-title class="text-h5 text-center font-weight-bold">
               Добро пожаловать!
@@ -11,11 +11,10 @@
               Авторизация на сервисе происходит через сохранненую учетную запись.
             </v-card-text>
             <v-text-field v-model="logInForm.email" label="Почта" placeholder="Введите Email" required outlined dense />
-            <v-btn :loading="isLoading" :disabled="isQueryInvalid" type="submit" color="primary" block>
+            <v-btn :loading="isLoading" type="submit" color="primary" block>
               Войти
             </v-btn>
-            <v-btn :disabled="isLoading || isQueryInvalid" color="primary" block class="mt-4" variant="outlined"
-              @click="authBySA">
+            <v-btn :disabled="isLoading" color="primary" block class="mt-4" variant="outlined" @click="loginBySA">
               Войти по ЕУЗ
             </v-btn>
           </v-card>
@@ -35,7 +34,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn color="primary" @click="handleSubmitAuth">
+          <v-btn color="primary" @click="handleSubmitLogin">
             Войти
           </v-btn>
           <v-btn @click="isModalVisible = false">
@@ -71,31 +70,14 @@ export default defineComponent({
       verificationCode: "",
       verificationError: false,
       isLoading: false,
-      serviceName: "",
-      returnUrl: "",
-      isQueryInvalid: false,
       ...useToast(),
     };
   },
   mounted() {
-    // Извлекаем параметры из query
-    this.serviceName = this.$route.query.service_name as string || "";
-    this.returnUrl = this.$route.query.return_url as string || "";
-
-    // Устанавливаем service_name в форму
-    this.logInForm.service_name = this.serviceName;
-
-    // Проверяем валидность параметров
-    if (!this.serviceName || !this.returnUrl) {
-      this.isQueryInvalid = true;
-      this.showToast(
-        "Некорректная ссылка для авторизации, не полный список параметров.",
-        "error"
-      );
-    }
+    this.logInForm.service_name = 'admin_api'
   },
   methods: {
-    async handleAuth() {
+    async handleLogin() {
       const form = this.$refs.form as any;
       if (!form.validate()) return;
       this.isLoading = true;
@@ -113,7 +95,7 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    async handleSubmitAuth() {
+    async handleSubmitLogin() {
       try {
         const response = await submit({
           login: this.userLogin, // Используем сохраненный логин
@@ -124,9 +106,7 @@ export default defineComponent({
           this.verificationError = false;
           this.isModalVisible = false;
           this.showToast("Успешный вход", "success");
-          await logout()
-          // переход на внешний сайт
-          window.location.href = this.returnUrl;
+          this.$router.push('/')
         } else {
           this.verificationError = true;
           this.showToast(response.error || "Ошибка подтверждения", "error");
@@ -136,15 +116,8 @@ export default defineComponent({
         this.showToast("Ошибка при подтверждении кода", "error");
       }
     },
-    authBySA() {
-      // передаем query параметры через router.push
-      this.$router.push({
-        path: '/auth',
-        query: {
-          service_name: this.serviceName,
-          return_url: this.returnUrl
-        }
-      });
+    loginBySA() {
+      this.$router.push('/login')
     },
   },
 });

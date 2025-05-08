@@ -1,452 +1,191 @@
 <template>
-  <v-app>
-    <header class="header">
-      <v-app-bar dark class="header-bar">
-        <div class="header-content">
-          <v-select v-model="selectedProject" :items="projects" item-title="verbose_name" item-value="name"
-            label="Выберите проект" class="project-select" outlined @input="passFunc" />
-          <v-btn color="success" class="header-btn" @click="passFunc">
-            <v-icon>mdi-refresh</v-icon>
-          </v-btn>
-          <v-btn color="primary" class="header-btn" :disabled="creatingProject" @click="passFunc">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn color="red" class="header-btn" @click="passFunc">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </div>
-
-        <div class="logo-container">
-          <img src="..\styles\img\mospolytech-logo-white.png" alt="Logo" class="logo">
-        </div>
-
-        <div class="d-flex align-center" style="margin-left: auto; gap: 10px; padding-right: 16px">
-          <v-btn color="yellow" class="header-btn-access" @click="passFunc">
-            ДОСТУП
-          </v-btn>
-          <v-btn color="red" class="header-btn-logout" @click="passFunc">
-            ВЫЙТИ
-          </v-btn>
-        </div>
-      </v-app-bar>
-    </header>
-
-    <div class="user-management-background">
-      <v-container class="table-wrapper">
-        <v-card class="centered-table-card" outlined>
-          <v-card-title class="text-h5 justify-center">
-            Управление пользователями
-            <v-btn icon @click="passFunc">
-              <v-icon>{{ isEditMode ? "mdi-eye" : "mdi-pencil" }}</v-icon>
-            </v-btn>
-            <v-btn v-if="isEditMode" color="blue" class="header-btn" @click="passFunc">
-              <v-icon>mdi-database</v-icon> Внести изменения
-            </v-btn>
-          </v-card-title>
-
-          <v-table class="centered-table">
-            <thead>
-              <tr>
-                <th class="text-left">
-                  Имя
-                </th>
-                <th class="text-left">
-                  Фамилия
-                </th>
-                <th class="text-left">
-                  Отчество
-                </th>
-                <th class="text-left">
-                  Логин
-                </th>
-                <th class="text-left">
-                  Почта
-                </th>
-                <th class="text-left">
-                  Роль
-                </th>
-              </tr>
-            </thead>
-            <!-- <tbody>
-              <tr v-for="item in users" :key="item.id">
-                <td>{{ item.first_name }}</td>
-                <td>{{ item.last_name }}</td>
-                <td>{{ item.middle_name }}</td>
-                <td>{{ item.login }}</td>
-                <td>{{ item.email }}</td>
-                <td>
-                  <div v-if="isEditMode">
-                    <v-select v-model="item.role" :items="roles.length > 0 ? roles : ['Загрузка...']" multiple outlined
-                      dense @change="(newRoles) => updateRoles(item.id, newRoles)" />
-                  </div>
-                  <div v-else>
-                    {{ item.role }}
-                  </div>
-                </td>
-              </tr>
-            </tbody> -->
-          </v-table>
-        </v-card>
-      </v-container>
-
-      <v-dialog v-model="createProjectDialogVisible" max-width="400px">
-        <v-card>
-          <v-card-title>Создать проект</v-card-title>
-          <v-card-text>
-            <v-text-field v-model="newProjectName" label="Название проекта" required />
-            <v-text-field v-model="newProjectLogin" label="Логин проекта" required />
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="secondary" @click="createProjectDialogVisible = false">
-              Отмена
-            </v-btn>
-            <v-btn color="primary" @click="passFunc">
-              Создать
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <v-dialog v-model="deleteProjectDialogVisible" max-width="400px">
-        <v-card>
-          <v-card-title>Удаление проекта</v-card-title>
-          <v-card-text>
-            Вы уверены, что хотите удалить проект "{{ projectToDeleteName }}"?
-          </v-card-text>
-          <v-card-actions>
-            <v-btn color="secondary" @click="deleteProjectDialogVisible = false">
-              Отмена
-            </v-btn>
-            <v-btn color="red" @click="passFunc">
-              Удалить
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+  <SplashScreen v-if="showSplash" @finished="onSplashFinished" />
+  <div v-else class="container">
+    <div class="search-wrapper">
+      <v-text-field ref="searchInput" v-model="search" prepend-inner-icon="mdi-magnify" placeholder="Поиск"
+        density="comfortable" variant="solo" flat rounded hide-details class="search-field mt-2">
+        <!-- ctrl+k -->
+      </v-text-field>
     </div>
-  </v-app>
+
+    <!-- список проектов -->
+    <v-container class="projects-section" fluid>
+      <h2 class="section-title">Ваши проекты</h2>
+      <v-row>
+        <v-col v-for="project in filteredProjects" :key="project.id" cols="6" sm="4" md="4" lg="3"
+          @click="handleProjectClick(project)">
+          <v-card class="project-card" rounded="xl">
+            <v-card-text class="text-center">
+              <v-avatar class="mb-3" size="48" color="primary" variant="tonal">
+                <v-icon>mdi-briefcase-outline</v-icon>
+              </v-avatar>
+              <div class="project-title">{{ project.verbose_name }}</div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
+
 
 <script lang="ts">
 import axios from "axios";
 import { defineComponent } from "vue";
+import SplashScreen from "@/components/SplashScreen.vue";
+
+interface Project {
+  id: string | number;
+  name: string;
+  verbose_name: string;
+}
 
 export default defineComponent({
   name: "UserManagementPage",
+  components: {
+    SplashScreen,
+  },
   data() {
     return {
-      projects: [],
-      users: [],
-      roles: [],
-      selectedProject: null as null | undefined,
-      isEditMode: false,
-      createProjectDialogVisible: false,
-      deleteProjectDialogVisible: false,
-      newProjectName: "",
-      newProjectLogin: "",
-      projectToDeleteName: null,
-      creatingProject: false,
-      headers: [
-        { text: "Имя", value: "first_name" },
-        { text: "Фамилия", value: "last_name" },
-        { text: "Отчество", value: "middle_name" },
-        { text: "Логин", value: "login" },
-        { text: "Почта", value: "email" },
-        { text: "Роль", value: "role" },
-      ],
+      showSplash: true,
+      search: "",
+      projects: [] as Project[],
     };
   },
-  methods: {
-    passFunc() {
-      return
+  computed: {
+    filteredProjects(): Project[] {
+      const query = this.search.toLowerCase().trim();
+      return this.projects.filter(project =>
+        project.verbose_name.toLowerCase().includes(query)
+      );
     }
-    // async fetchProjects() {
-    //   try {
-    //     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/services/filters`, {});
-    //     this.projects = response.data.data.map(project => ({
-    //       id: project.id,
-    //       name: project.name,
-    //       verbose_name: project.verbose_name,
-    //     }));
-    //   } catch (error) {
-    //     console.error("Ошибка загрузки проектов:", error);
-    //   }
-    // },
-    // async fetchRoles() {
-    //   if (!this.selectedProject) return;
-    //   try {
-    //     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/service-roles/filters`, {
-    //       service_name: this.selectedProject,
-    //     });
-    //     this.roles = response.data.data.map(role => role.role);
-    //   } catch (error) {
-    //     console.error("Ошибка при загрузке ролей:", error);
-    //   }
-    // },
-    // async fetchUsers() {
-    //   if (!this.selectedProject) return;
-    //   try {
-    //     const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/users/filters`, {
-    //       service_name: this.selectedProject,
-    //     });
-
-    //     const usersList = [];
-    //     for (const user of response.data.data) {
-    //       const rolesResponse = await axios.post(
-    //         `${import.meta.env.VITE_API_BASE_URL}/users/${user.id}/get_roles_from_service?service_name=${this.selectedProject}`
-    //       );
-
-    //       const userRoles = [];
-    //       for (const role of rolesResponse.data.roles || []) {
-    //         try {
-    //           const roleResponse = await axios.get(
-    //             `${import.meta.env.VITE_API_BASE_URL}/service-roles/${role.service_roles_id}`
-    //           );
-    //           userRoles.push(roleResponse.data.role);
-    //         } catch (roleError) {
-    //           console.error(
-    //             `Ошибка при получении роли с id ${role.service_roles_id}:`,
-    //             roleError
-    //           );
-    //         }
-    //       }
-
-    //       const userData = {
-    //         id: user.id,
-    //         first_name: user.name,
-    //         last_name: user.surname,
-    //         middle_name: user.patronymic || "",
-    //         login: user.login,
-    //         email: user.email,
-    //         role: user.role,
-    //         roles: userRoles,
-    //         userRoles: rolesResponse.data.roles || [],
-    //       };
-
-    //       usersList.push(userData);
-    //     }
-
-    //     this.users = usersList;
-    //   } catch (error) {
-    //     console.error("Ошибка загрузки пользователей:", error);
-    //   }
-    // },
-    // async updateRoles(userId, newRoles) {
-    //   try {
-    //     const currentUser = this.users.find(user => user.id === userId);
-    //     if (!currentUser) throw new Error("Пользователь не найден");
-
-    //     const currentRoles = currentUser.roles || [];
-    //     const roleMappings = await axios.post(
-    //       `${import.meta.env.VITE_API_BASE_URL}/service-roles/filters`,
-    //       {
-    //         service_name: this.selectedProject,
-    //       }
-    //     );
-
-    //     const roleMap = roleMappings.data.data.reduce((map, role) => {
-    //       map[role.role] = role.id;
-    //       return map;
-    //     }, {});
-
-    //     const rolesToAdd = newRoles.filter(role => !currentRoles.includes(role));
-    //     const rolesToRemove = currentRoles.filter(role => !newRoles.includes(role));
-
-    //     for (const roleName of rolesToAdd) {
-    //       const serviceRoleId = roleMap[roleName];
-    //       if (serviceRoleId) {
-    //         await this.addRole(userId, serviceRoleId);
-    //       }
-    //     }
-
-    //     for (const roleName of rolesToRemove) {
-    //       const userRole = currentUser.userRoles.find(r => r.role === roleName);
-    //       if (userRole && userRole.user_service_role_id) {
-    //         await this.removeRole(userRole.user_service_role_id);
-    //       }
-    //     }
-
-    //     currentUser.roles = newRoles;
-    //   } catch (error) {
-    //     console.error("Ошибка обновления ролей:", error);
-    //   }
-    // },
-    // async addRole(userId, serviceRoleId) {
-    //   try {
-    //     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user_service_roles`, {
-    //       service_roles_id: serviceRoleId,
-    //       user_id: userId,
-    //     });
-    //   } catch (error) {
-    //     console.error(`Ошибка добавления роли ${serviceRoleId}:`, error);
-    //   }
-    // },
-    // async removeRole(userServiceRoleId) {
-    //   try {
-    //     await axios.delete(
-    //       `${import.meta.env.VITE_API_BASE_URL}/user_service_roles/${userServiceRoleId}`
-    //     );
-    //   } catch (error) {
-    //     console.error(`Ошибка удаления роли ${userServiceRoleId}:`, error);
-    //   }
-    // },
-    // toggleEditMode() {
-    //   this.isEditMode = !this.isEditMode;
-    //   if (this.isEditMode && this.selectedProject) {
-    //     this.fetchRoles();
-    //   }
-    // },
-    // logout() {
-    //   window.location.href = "/";
-    // },
-    // handleAccess() {
-    //   window.location.href = "/admin/user/permissions";
-    // },
-    // openCreateProjectDialog() {
-    //   this.createProjectDialogVisible = true;
-    // },
-    // async createProject() {
-    //   if (!this.newProjectName.trim() || !this.newProjectLogin.trim()) return;
-
-    //   this.creatingProject = true;
-    //   try {
-    //     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/services`, {
-    //       name: this.newProjectLogin,
-    //       verbose_name: this.newProjectName,
-    //     });
-    //     this.createProjectDialogVisible = false;
-    //     this.newProjectName = "";
-    //     this.newProjectLogin = "";
-    //     await this.fetchProjects();
-    //   } catch (error) {
-    //     console.error("Ошибка создания проекта:", error);
-    //   } finally {
-    //     this.creatingProject = false;
-    //   }
-    // },
-    // confirmDeleteProject(projectName) {
-    //   this.projectToDeleteName = projectName;
-    //   this.deleteProjectDialogVisible = true;
-    // },
-    // async deleteProject() {
-    //   if (!this.projectToDeleteName) return;
-
-    //   try {
-    //     await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/services/${this.projectToDeleteName}`);
-    //     this.deleteProjectDialogVisible = false;
-    //     this.selectedProject = "";
-    //     await this.fetchProjects();
-    //   } catch (error) {
-    //     console.error("Ошибка удаления проекта:", error);
-    //   }
-    // },
   },
   mounted() {
-    // this.fetchProjects();
+    this.fetchProjects();
   },
+  methods: {
+    async fetchProjects() {
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/services/filters`, {});
+        this.projects = response.data.data.map((project: { id: any; name: any; verbose_name: any; }) => ({
+          id: project.id,
+          name: project.name,
+          verbose_name: project.verbose_name,
+        }));
+      } catch (error) {
+        console.error("Ошибка загрузки проектов:", error);
+        alert("Ошибка загрузки данных! Пожалуйста, попробуйте снова.");
+      }
+    },
+    onSplashFinished() {
+      this.showSplash = false;
+    },
+    handleProjectClick(project: Project) {
+      this.$router.push(`/project/${project.id}`);
+    },
+  }
 });
 </script>
 
+
 <style scoped>
-.header-bar {
+.container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: start;
   align-items: center;
-  padding-top: 15px;
-  padding-bottom: 15px;
+  height: 100vh;
+  /* padding-top: 80px; */
 }
 
-.header-content {
+.search-wrapper {
+  width: 100%;
+  max-width: 600px;
+  padding: 0 18px;
+}
+
+.search-field {
+  width: 100%;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.153);
+  border-radius: 18px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 24px 0 12px;
+  padding-left: 12px;
+}
+
+/* для ctrl+k */
+/* .shortcut {
   display: flex;
+  gap: 4px;
   align-items: center;
-  gap: 8px;
+  padding-right: 8px;
 }
+.key {
+  font-size: 12px;
+  padding: 2px 6px;
+  background: #f3f3f3;
+  border-radius: 4px;
+  font-weight: 500;
+  color: #444;
+  border: 1px solid #ddd;
+} */
 
-.logo-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.logo {
-  height: 55px;
-}
-
-.project-select {
-  margin: 20px;
-  margin-bottom: 0px;
-  min-width: 250px;
-}
-
-.header-btn {
-  border: 2px solid;
-  border-radius: 8px;
-  transition: all 0.3s;
-}
-
-.header-btn[color="primary"] {
-  border-color: #1976d2;
-}
-
-.header-btn[color="red"] {
-  border-color: #d32f2f;
-}
-
-.header-btn:hover {
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
-}
-
-.header-btn-access {
-  border: 2px solid #fbc02d;
-  border-radius: 8px;
-  transition: all 0.3s;
-  margin-left: auto;
-}
-
-.header-btn-access:hover {
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.header-btn-logout {
-  border: 2px solid #d32f2f;
-  border-radius: 8px;
-  margin-left: auto;
-  transition: all 0.3s;
-}
-
-.header-btn-logout:hover {
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.header-btn[color="success"] {
-  border-color: #388e3c;
-}
-
-.user-management-background {
-  background-color: #3a3a3a;
-  min-height: 100vh;
-  padding: 20px;
-}
-
-.table-wrapper {
+.project-card {
+  min-height: 180px;
+  width: 100%;
+  padding: 10px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 20px;
-  margin-top: 110px;
-}
-
-.centered-table-card {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  transition: transform 0.3s, background-color 0.3s;
+  cursor: pointer;
   border-radius: 10px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.153);
 }
 
-.centered-table {
-  width: 100%;
+.project-card:hover {
+  background-image: linear-gradient(to bottom, #66a1e56c, white);
 }
 
-.v-data-table {
-  table-layout: auto;
+.project-card .v-card-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  transition: transform 0.3s;
+}
+
+.project-card:hover .v-avatar {
+  box-shadow: 0 2px 8px rgba(216, 215, 215, 0.153);
+}
+
+.project-card .v-avatar,
+.project-card .project-title {
+  transition: transform 0.3s;
+}
+
+.project-card:hover .v-avatar,
+.project-card:hover .project-title {
+  transform: translateY(18px);
+}
+
+.project-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  word-break: break-word;
+}
+
+.project-card .v-avatar {
+  transition: transform 0.3s ease, background-color 0.3s ease;
 }
 </style>

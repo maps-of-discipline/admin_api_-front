@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
-import AuthEmailPage from "@/pages/AuthByEmail.vue";
 import AuthPage from "@/pages/Auth.vue";
+import AuthEmailPage from "@/pages/AuthByEmail.vue";
+import LoginPage from "@/pages/Login.vue";
+import LoginEmailPage from "@/pages/LoginByEmail.vue";
 import MainPage from "@/pages/Main.vue";
+import ProjectDetailsPage from "@/pages/ProjectDetails.vue";
 
 const routes = [
   {
@@ -17,10 +20,29 @@ const routes = [
     meta: { title: "Авторизация по ЕУЗ" },
   },
   {
-    path: "/eauth",
+    path: "/auth/email",
     name: "AuthEmailPage",
     component: AuthEmailPage,
     meta: { title: "Авторизация по почте" },
+  },
+  {
+    path: "/login",
+    name: "LoginPage",
+    component: LoginPage,
+    meta: { title: "Авторизация по ЕУЗ" },
+  },
+  {
+    path: "/login/email",
+    name: "LoginEmailPage",
+    component: LoginEmailPage,
+    meta: { title: "Авторизация по почте" },
+  },
+  {
+    path: "/project/:projectId",
+    name: "ProjectDetailsPage",
+    component: ProjectDetailsPage,
+    meta: { title: "Проект" },
+    props: true,
   },
 ];
 
@@ -30,13 +52,13 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const defaultTitle = "Admin API";
-  document.title = (to.meta.title as string) || defaultTitle;
+  const defaultTitle = "Админ API";
+  document.title = (to.meta.title as string) + " | Админ API" || defaultTitle;
 
   // Проверка авторизации
   const isAuthenticated = !!localStorage.getItem("access_token");
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next("/auth");
+    next("/login");
     return;
   }
 
