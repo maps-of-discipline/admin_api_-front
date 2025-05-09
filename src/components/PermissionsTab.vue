@@ -1,0 +1,241 @@
+<template>
+  <v-container fluid>
+    <v-card>
+      <v-card-title class="d-flex justify-space-between align-center">
+        {{ service.verbose_name }}
+        <v-btn icon @click="openCreatePermissionDialog" color="success">
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </v-card-title>
+
+      <v-data-table :headers="headers" :items="permissions" :loading="loading"
+        items-per-page-text="Элементов на странице" class="elevation-1">
+        <template #item.actions="{ item }">
+          <v-btn icon @click="openEditPermissionDialog(item)">
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn icon @click="openDeletePermissionDialog(item)" color="error">
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </template>
+
+        <template #no-data>
+          <v-alert type="info">Нет прав доступа для отображения.</v-alert>
+        </template>
+      </v-data-table>
+    </v-card>
+  </v-container>
+
+  <!-- Диалог создания -->
+  <v-dialog v-model="createDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h6">Создание нового права доступа</v-card-title>
+      <v-card-text>
+        <v-form ref="createForm" v-model="createFormValid">
+          <v-text-field v-model="newPermission.title" label="Название" outlined :rules="[nameRule]" />
+          <v-text-field v-model="newPermission.verbose_name" label="Отображаемое имя" outlined
+            :rules="[verboseNameRule]" />
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="primary" :disabled="!createFormValid" @click="submitCreateForm">Создать</v-btn>
+        <v-btn @click="createDialog = false">Отмена</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Диалог редактирования -->
+  <v-dialog v-model="editDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h6">Редактирование права доступа</v-card-title>
+      <v-card-text>
+        <v-form ref="editForm" v-model="editFormValid">
+          <v-text-field v-model="editedPermission.title" label="Название" outlined :rules="[nameRule]" />
+          <v-text-field v-model="editedPermission.verbose_name" label="Отображаемое имя" outlined
+            :rules="[verboseNameRule]" />
+        </v-form>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="primary" :disabled="!editFormValid" @click="submitEditForm">Сохранить</v-btn>
+        <v-btn @click="editDialog = false">Отмена</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Диалог удаления -->
+  <v-dialog v-model="deleteDialog" max-width="500">
+    <v-card>
+      <v-card-title class="text-h6">Подтвердите удаление</v-card-title>
+      <v-card-text>
+        Вы уверены, что хотите удалить право доступа:
+        <strong>{{ permissionToDelete?.title }}</strong>?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="red" @click="deleteServicePermissionData">Удалить</v-btn>
+        <v-btn @click="deleteDialog = false">Отмена</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Toast -->
+  <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="left" multi-line>
+    {{ snackbarMessage }}
+    <template #actions>
+      <v-progress-linear color="black" height="2" absolute bottom />
+    </template>
+  </v-snackbar>
+</template>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+import {
+  getServicePermissions,
+  createServicePermission,
+  updateServicePermission,
+  deleteServicePermission,
+} from '../services/permission';
+import { useToast } from '../composable/useToast';
+import type { Service } from '../interfaces/service';
+import type { Permission } from '../interfaces/permission';
+
+export default defineComponent({
+  name: 'PermissionsTab',
+  props: {
+    service: {
+      type: Object as () => Service,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      permissions: [] as Permission[],
+      loading: false,
+      headers: [
+        { title: 'Название', value: 'verbose_name' },
+        { title: 'Параметр', value: 'title' },
+        { title: 'Действия', value: 'actions', sortable: false },
+      ],
+      createDialog: false,
+      editDialog: false,
+      deleteDialog: false,
+      createFormValid: false,
+      editFormValid: false,
+      newPermission: {} as Permission,
+      editedPermission: {} as Permission,
+      permissionToDelete: null as Permission | null,
+      ...useToast(),
+    };
+  },
+  computed: {
+    nameRule() {
+      return (v: string) => /^[A-Za-z0-9_]+$/.test(v) || 'Только латинские символы и цифры';
+    },
+    verboseNameRule() {
+      return (v: string) => /^[А-Яа-яЁё\s]+$/.test(v) || 'Только кириллица';
+    },
+  },
+  watch: {
+    service: {
+      handler: 'getServicePermissionsData',
+      immediate: true,
+    },
+  },
+  methods: {
+    async getServicePermissionsData() {
+      if (!this.service.name) return;
+      try {
+        const response = await getServicePermissions({
+          id: '',
+          name: this.service.name,
+          verbose_name: '',
+        });
+        if (response.success) {
+          this.permissions = response.data as Permission[];
+        } else {
+          this.showToast(response.error || 'Ошибка получения данных.', 'error');
+        }
+      } catch {
+        this.showToast('Ошибка при запросе.', 'error');
+      }
+    },
+    openCreatePermissionDialog() {
+      this.newPermission = {} as Permission;
+      this.createDialog = true;
+    },
+    async createServicePermissionData() {
+      try {
+        const response = await createServicePermission({
+          service_id: this.service.id,
+          title: this.newPermission.title,
+          verbose_name: this.newPermission.verbose_name,
+        });
+        if (response.success) {
+          this.showToast('Право доступа создано', 'success');
+          this.createDialog = false;
+          await this.getServicePermissionsData();
+        } else {
+          this.showToast(response.error || 'Ошибка создания.', 'error');
+        }
+      } catch {
+        this.showToast('Ошибка при запросе.', 'error');
+      }
+    },
+    submitCreateForm() {
+      const form = this.$refs.createForm as any;
+      if (form.validate()) {
+        this.createServicePermissionData();
+      }
+    },
+    openEditPermissionDialog(permission: Permission) {
+      this.editedPermission = { ...permission };
+      this.editDialog = true;
+    },
+    async updateServicePermissionData() {
+      try {
+        const response = await updateServicePermission(this.editedPermission);
+        if (response.success) {
+          this.showToast('Право доступа обновлено', 'success');
+          this.editDialog = false;
+          await this.getServicePermissionsData();
+        } else {
+          this.showToast(response.error || 'Ошибка обновления.', 'error');
+        }
+      } catch {
+        this.showToast('Ошибка при запросе.', 'error');
+      }
+    },
+    submitEditForm() {
+      const form = this.$refs.editForm as any;
+      if (form.validate()) {
+        this.updateServicePermissionData();
+      }
+    },
+    openDeletePermissionDialog(permission: Permission) {
+      this.permissionToDelete = permission;
+      this.deleteDialog = true;
+    },
+    async deleteServicePermissionData() {
+      try {
+        const response = await deleteServicePermission({
+          id: this.permissionToDelete!.id,
+          service_id: this.permissionToDelete!.service_id,
+          title: this.permissionToDelete!.title,
+          verbose_name: this.permissionToDelete!.verbose_name,
+        });
+        if (response.success) {
+          this.showToast('Право доступа удалено', 'success');
+          this.deleteDialog = false;
+          await this.getServicePermissionsData();
+        } else {
+          this.showToast(response.error || 'Ошибка удаления.', 'error');
+        }
+      } catch {
+        this.showToast('Ошибка при запросе.', 'error');
+      }
+    },
+  },
+});
+</script>

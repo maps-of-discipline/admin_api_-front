@@ -4,7 +4,7 @@ import AuthEmailPage from "@/pages/AuthByEmail.vue";
 import LoginPage from "@/pages/Login.vue";
 import LoginEmailPage from "@/pages/LoginByEmail.vue";
 import MainPage from "@/pages/Main.vue";
-import ProjectDetailsPage from "@/pages/ProjectDetails.vue";
+import ServiceDetailsPage from "@/pages/ServiceDetails.vue";
 
 const routes = [
   {
@@ -38,10 +38,10 @@ const routes = [
     meta: { title: "Авторизация по почте" },
   },
   {
-    path: "/project/:projectId",
-    name: "ProjectDetailsPage",
-    component: ProjectDetailsPage,
-    meta: { title: "Проект" },
+    path: "/service/:serviceId",
+    name: "ServiceDetailsPage",
+    component: ServiceDetailsPage,
+    meta: { title: "Сервис" },
     props: true,
   },
 ];
@@ -54,14 +54,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const defaultTitle = "Админ API";
   document.title = (to.meta.title as string) + " | Админ API" || defaultTitle;
-
   // Проверка авторизации
   const isAuthenticated = !!localStorage.getItem("access_token");
   if (to.meta.requiresAuth && !isAuthenticated) {
     next("/login");
     return;
   }
-
   next();
 });
 

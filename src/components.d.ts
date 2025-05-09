@@ -8,8 +8,12 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BasePage: typeof import('./components/BasePage.vue')['default']
+    PermissionsTab: typeof import('./components/PermissionsTab.vue')['default']
+    RolesTabs: typeof import('./components/RolesTabs.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SettingsTab: typeof import('./components/SettingsTab.vue')['default']
     SplashScreen: typeof import('./components/SplashScreen.vue')['default']
+    UsersTab: typeof import('./components/UsersTab.vue')['default']
   }
 }

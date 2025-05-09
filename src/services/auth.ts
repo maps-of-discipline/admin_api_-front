@@ -13,7 +13,8 @@ export async function login(params: ILogin): Promise<IResponse<void>> {
     return { success: true };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    const errorMessage = err.response?.data?.message || "Ошибка авторизации";
+    const errorMessage =
+      err.response?.data?.message || "Ошибка при авторизации";
     return { success: false, error: errorMessage };
   }
 }
@@ -28,7 +29,8 @@ export async function loginByEmail(
     return { success: true, data: login };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    const errorMessage = err.response?.data?.message || "Ошибка авторизации";
+    const errorMessage =
+      err.response?.data?.message || "Ошибка при авторизации";
     return { success: false, error: errorMessage };
   }
 }
@@ -50,7 +52,7 @@ export async function submit(params: ISubmitLogin): Promise<IResponse<void>> {
     const response = await API.post("users/verification_auth_code", params);
     const { access_token, refresh_token } = response.data;
     if (!access_token || !refresh_token) {
-      return { success: false, error: "Не удалось получить токен" };
+      return { success: false, error: "Ошибка при получении токена" };
     }
     localStorage.setItem("access_token", access_token);
     localStorage.setItem("refresh_token", refresh_token);
@@ -58,7 +60,8 @@ export async function submit(params: ISubmitLogin): Promise<IResponse<void>> {
     return { success: true };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
-    const errorMessage = err.response?.data?.message || "Ошибка авторизации";
+    const errorMessage =
+      err.response?.data?.message || "Ошибка при авторизации";
     return { success: false, error: errorMessage };
   }
 }

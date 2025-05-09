@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <!-- Форма аторизации -->
     <v-container max-width="400">
       <v-col cols="12" sm="500" md="300" class="mx-auto">
         <v-form ref="form" @submit.prevent="handleAuth">
