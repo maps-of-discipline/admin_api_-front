@@ -80,7 +80,7 @@ import { useToast } from "../composable/useToast";
 import type { Service } from '../interfaces/service';
 import type { User } from '../interfaces/user';
 import type { Role } from '../interfaces/role';
-import type { UserRole } from '../interfaces/userRole';
+import type { UserRole } from '../interfaces/user_role';
 
 export default defineComponent({
   name: 'UsersTab',

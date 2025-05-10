@@ -126,7 +126,7 @@ import { useToast } from "../composable/useToast";
 import type { Service } from '../interfaces/service';
 import type { Role } from '../interfaces/role';
 import type { Permission } from '../interfaces/permission';
-import type { RolePermission } from '../interfaces/rolePermission';
+import type { RolePermission } from '../interfaces/role_permission';
 import {
   createServiceRole,
   updateServiceRole,

@@ -2,7 +2,7 @@ import { API, type IResponse } from "../services/api";
 import { type Service } from "../interfaces/service";
 import { AxiosError } from "axios";
 import type { User } from "../interfaces/user";
-import type { UserRole } from "../interfaces/userRole";
+import type { UserRole } from "../interfaces/user_role";
 import type { Role } from "../interfaces/role";
 
 // Получить информацию о пользователях сервиса

@@ -3,7 +3,7 @@ import { type Service } from "../interfaces/service";
 import { AxiosError } from "axios";
 import type { Permission } from "../interfaces/permission";
 import type { Role } from "../interfaces/role";
-import type { RolePermission } from "../interfaces/rolePermission";
+import type { RolePermission } from "../interfaces/role_permission";
 
 // Получить информацию о правах доступа сервиса
 export async function getServicePermissions(
