@@ -2,7 +2,7 @@
   <v-container fluid>
     <v-card>
       <v-card-title>{{ service.verbose_name }}</v-card-title>
-      <v-data-table :headers="headers" :items="users" :loading="loading" items-per-page-text="Элементов на странице"
+      <v-data-table :headers="headers" :items="requests" :loading="loading" items-per-page-text="Элементов на странице"
         class="elevation-1">
         <template #item.fio="{ item }">
           {{ item.surname }} {{ item.name }} {{ item.patronymic }}
@@ -38,6 +38,10 @@ export default defineComponent({
       type: Object as () => Service,
       required: true,
     },
+    search: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -50,7 +54,6 @@ export default defineComponent({
         { title: 'Роль', value: 'role' },
       ],
       ...useToast(),
-
     };
   },
   //   watch: {

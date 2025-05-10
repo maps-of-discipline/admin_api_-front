@@ -24,7 +24,8 @@ export async function getServiceRoles(
       });
     }
     const roles = response.data.data;
-    return { success: true, data: roles };
+    const total = response.data.total;
+    return { success: true, data: roles,total };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
     const errorMessage =
@@ -88,6 +89,3 @@ export async function deleteServiceRole(
     return { success: false, error: errorMessage };
   }
 }
-
-
-// Обновить роль у пользователя

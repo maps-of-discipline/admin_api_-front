@@ -4,20 +4,21 @@
       <v-card-title class="d-flex justify-space-between align-center">
         {{ service.verbose_name }}
         <div class="px-2">
-          <v-btn icon @click="openCreateRoleDialog" color="success">
+          <v-btn icon @click="openCreateRoleDialog" color="success" density="comfortable">
             <v-icon>mdi-plus</v-icon>
           </v-btn>
         </div>
       </v-card-title>
-      <v-data-table :headers="headers" :items="filteredRoles" :loading="loading" :items-per-page="itemsPerPage"
-        :page="page" :total-items="totalItems" @update:page="onPageChange" @update:items-per-page="onItemsPerPageChange"
-        items-per-page-text="Элементов на странице" class="elevation-1">
+      <v-data-table-server :items-length="totalItems" :headers="headers" :items="filteredRoles" :loading="loading"
+        :items-per-page="itemsPerPage" :page="page" @update:page="onPageChange"
+        @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице"
+        :items-per-page-options="[5, 10, 100]" class="elevation-1">
         <template #item.actions="{ item }">
           <td class="actions-cell">
-            <v-btn icon @click="openEditRoleDialog(item)">
+            <v-btn icon @click="openEditRoleDialog(item)" density="comfortable">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn icon @click="openDeleteRoleDialog(item)" color="error">
+            <v-btn icon @click="openDeleteRoleDialog(item)" color="error" density="comfortable">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
@@ -25,7 +26,7 @@
         <template #no-data>
           <v-alert type="info">Нет ролей для отображения.</v-alert>
         </template>
-      </v-data-table>
+      </v-data-table-server>
 
     </v-card>
   </v-container>
@@ -54,7 +55,7 @@
     <v-card>
       <v-card-title class="text-h6">Редактирование роли</v-card-title>
       <v-container class="pt-0">
-        <v-form ref="editForm" v-model="editFormValid">
+        <v-form ref="editForm" v-model="editFormValid" class="pl-4">
           <div class="d-flex flex-row" style="gap: 16px;">
             <v-text-field v-model="editedRole.role" label="Название" outlined :rules="[nameRule]" class="flex-grow-1" />
             <v-text-field v-model="editedRole.verbose_name" label="Отображаемое имя" outlined :rules="[verboseNameRule]"
@@ -70,16 +71,16 @@
         <p class="text-subtitle-1 font-weight-bold pb-2 ">Права доступа:</p>
         <!-- Поиск по правам доступа -->
         <v-text-field v-model="permissionSearch" label="Поиск прав" prepend-inner-icon="mdi-magnify" outlined dense
-          class="mb-2" />
+          class="mb-2 px-4" />
         <v-skeleton-loader v-if="loadingPermissions" type="list-item-three-line" />
-        <div v-else style="max-height: 300px; overflow-y: auto;">
+        <div v-else style="max-height: 300px; overflow-y: auto;" class="px-4">
           <div v-for="perm in filteredPermissions" :key="perm.id">
             <!-- Разделитель -->
             <v-divider></v-divider>
             <div class="ml-4 d-flex align-center">
               <!-- Название -->
               <span class="text-body-1" style="flex-grow: 1; display: flex; align-items: center;">
-                {{ perm.verbose_name }}
+                {{ perm.verbose_name || perm.title }}
               </span>
               <!-- переключатель -->
               <v-switch style="height: 56px;" :model-value="rolePermissions[perm.id]"
@@ -171,7 +172,7 @@ export default defineComponent({
       loadingPermissions: false,
       permissionSearch: '',
       page: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 5,
       totalItems: 0,
       ...useToast(),
 
@@ -214,6 +215,7 @@ export default defineComponent({
     },
     onItemsPerPageChange(itemsPerPage: number) {
       this.itemsPerPage = itemsPerPage;
+      this.page = 1
       this.getServiceRolesData();
     },
     async getServiceRolesData() {
@@ -226,7 +228,7 @@ export default defineComponent({
           this.itemsPerPage);
         if (response.success) {
           this.roles = (response.data as Role[])
-          this.totalItems = response.data.totalItems;
+          this.totalItems = response.total
         } else {
           this.showToast(response.error || "Ошибка получения данных.", "error");
         }
@@ -268,11 +270,9 @@ export default defineComponent({
       this.loadingPermissions = true;
       if (!this.service.name) return;
       try {
-        const response = await getServicePermissions({
-          id: '',
-          name: this.service.name,
-          verbose_name: '',
-        });
+        const response = await getServicePermissions({ id: "", name: this.service.name, verbose_name: "" },
+          1,
+          100);
         if (response.success) {
           this.permissions = response.data as Permission[];
         } else {
@@ -291,7 +291,6 @@ export default defineComponent({
         if (response.success) {
           const assigned = response.data as RolePermission[];
           const assignedIds = new Set(assigned.map(p => p.permission_id));
-
           const permissionsState: Record<string, boolean> = {};
           for (const perm of this.permissions) {
             permissionsState[perm.id] = assignedIds.has(perm.id);

@@ -4,10 +4,10 @@
       <v-card-title class="d-flex justify-space-between align-center">
         {{ service.verbose_name }}
         <div class="px-2">
-          <v-btn icon v-if="!editing" @click="enableEditing" class="mr-2">
+          <v-btn icon v-if="!editing" @click="enableEditing" class="mr-2" density="comfortable">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn :disabled="editing" icon color="error" @click="dialog = true">
+          <v-btn :disabled="editing" icon color="error" @click="dialog = true" density="comfortable">
             <v-icon>mdi-delete</v-icon>
           </v-btn>
         </div>
