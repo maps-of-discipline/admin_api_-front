@@ -12,7 +12,7 @@
 
       <v-data-table-server :items-per-page="itemsPerPage" :headers="headers" :items="filteredPermissions"
         :items-length="totalItems" :loading="loading" :page="page" @update:page="onPageChange"
-        @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице" class="elevation-1">
+        @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице" :items-per-page-options="[5, 10, 100]" class="elevation-1">
         <template #item.actions="{ item }">
           <td class="actions-cell">
             <v-btn icon @click="openEditPermissionDialog(item)" density="comfortable">
