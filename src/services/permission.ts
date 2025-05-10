@@ -2,6 +2,8 @@ import { API, type IResponse } from "../services/api";
 import { type Service } from "../interfaces/service";
 import { AxiosError } from "axios";
 import type { Permission } from "../interfaces/permission";
+import type { Role } from "../interfaces/role";
+import type { RolePermission } from "../interfaces/rolepermission";
 
 // Получить информацию о правах доступа сервиса
 export async function getServicePermissions(
@@ -17,6 +19,65 @@ export async function getServicePermissions(
     const err = error as AxiosError<{ message: string }>;
     const errorMessage =
       err.response?.data?.message || "Ошибка при получении списка прав доступа";
+    return { success: false, error: errorMessage };
+  }
+}
+
+// Получить информацию о правах доступа у роли
+export async function getServiceRolePermissions(
+  params: Role
+): Promise<IResponse<RolePermission[]>> {
+  try {
+    const response = await API.get(
+      `/service-roles${params.id}/permissions`,
+      {}
+    );
+    const rolePermissions = response.data.data;
+    return { success: true, data: rolePermissions };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    const errorMessage =
+      err.response?.data?.message ||
+      "Ошибка при получении списка прав доступа у роли";
+    return { success: false, error: errorMessage };
+  }
+}
+
+// Добавить к роли право доступа
+export async function assingServiceRolePermission(
+  role_id: Role,
+  permission_id: Permission
+): Promise<IResponse<RolePermission>> {
+  try {
+    const response = await API.post(`/service-roles/assign-permission`, {
+      service_role_id: role_id,
+      permission_id: permission_id,
+    });
+    return { success: true };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    const errorMessage =
+      err.response?.data?.message ||
+      "Ошибка при добавлении права доступа к роли";
+    return { success: false, error: errorMessage };
+  }
+}
+
+// Убрать у роли право доступа
+export async function revokeServiceRolePermission(
+  role_id: Role,
+  permission_id: Permission
+): Promise<IResponse<RolePermission>> {
+  try {
+    const response = await API.post(`/service-roles/revoke-permission`, {
+      service_role_id: role_id,
+      permission_id: permission_id,
+    });
+    return { success: true };
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    const errorMessage =
+      err.response?.data?.message || "Ошибка при удалении права доступа у роли";
     return { success: false, error: errorMessage };
   }
 }

@@ -14,6 +14,13 @@ const routes = [
     meta: { title: "Главная страница", requiresAuth: true },
   },
   {
+    path: "/service/:serviceId",
+    name: "ServiceDetailsPage",
+    component: ServiceDetailsPage,
+    meta: { title: "Сервис", requiresAuth: true },
+    props: true,
+  },
+  {
     path: "/auth",
     name: "AuthPage",
     component: AuthPage,
@@ -36,13 +43,6 @@ const routes = [
     name: "LoginEmailPage",
     component: LoginEmailPage,
     meta: { title: "Авторизация по почте" },
-  },
-  {
-    path: "/service/:serviceId",
-    name: "ServiceDetailsPage",
-    component: ServiceDetailsPage,
-    meta: { title: "Сервис" },
-    props: true,
   },
 ];
 

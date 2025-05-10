@@ -45,10 +45,10 @@ export default defineComponent({
       users: [] as User[],
       loading: false,
       headers: [
-        { title: 'ФИО', value: 'fio' },
-        { title: 'Логин', value: 'login' },
-        { title: 'Почта', value: 'email' },
-        { title: 'Роль', value: 'role' },
+        { title: 'ФИО', value: 'fio', sortable: false },
+        { title: 'Логин', value: 'login', sortable: true },
+        { title: 'Почта', value: 'email', sortable: true },
+        { title: 'Роль', value: 'role', sortable: true },
       ],
       ...useToast(),
 

@@ -24,7 +24,7 @@
 
       <!-- Динамический контент по табу -->
       <div class="content">
-        <component :is="currentTabComponent" :service="service" @update:service="updateServiceData" />
+        <component :is="currentTabComponent" :service="service" :search="search" @update:service="updateServiceData" />
       </div>
     </v-container>
 
@@ -48,6 +48,7 @@ import UsersTab from "../components/UsersTab.vue";
 import RolesTab from "../components/RolesTabs.vue";
 import PermissionsTab from "../components/PermissionsTab.vue";
 import SettingsTab from "../components/SettingsTab.vue";
+import RequestsTab from "../components/RequestsTab.vue";
 
 export default defineComponent({
   name: "ProjectDetailsPage",
@@ -62,7 +63,7 @@ export default defineComponent({
     RolesTab,
     PermissionsTab,
     SettingsTab,
-    // RequestsTab,
+    RequestsTab,
   },
   data() {
     return {
@@ -81,6 +82,7 @@ export default defineComponent({
         settings: "SettingsTab",
         requests: "RequestsTab",
       };
+      this.search = ''
       return map[this.selectedTab] || "UsersTab";
     },
   },

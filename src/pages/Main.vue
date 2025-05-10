@@ -10,7 +10,7 @@
 
     <!-- Список проектов -->
     <v-container fluid>
-      <h2 class="section-title mt-4 mb-8 ml-3">ВАШИ ПРОЕКТЫ</h2>
+      <h2 class="section-title mt-4 mb-8 ml-3">ВАШИ СЕРВИСЫ</h2>
       <v-row>
         <v-col v-for="service in filteredServices" :key="service.id" cols="6" sm="4" md="4" lg="3"
           @click="handleServiceClick(service)">

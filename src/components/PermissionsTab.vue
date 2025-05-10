@@ -37,6 +37,7 @@
             :rules="[verboseNameRule]" />
         </v-form>
       </v-card-text>
+      <!-- Кнопки -->
       <v-card-actions>
         <v-spacer />
         <v-btn color="primary" :disabled="!createFormValid" @click="submitCreateForm">Создать</v-btn>
@@ -56,6 +57,7 @@
             :rules="[verboseNameRule]" />
         </v-form>
       </v-card-text>
+      <!-- Кнопки -->
       <v-card-actions>
         <v-spacer />
         <v-btn color="primary" :disabled="!editFormValid" @click="submitEditForm">Сохранить</v-btn>
@@ -72,6 +74,7 @@
         Вы уверены, что хотите удалить право доступа:
         <strong>{{ permissionToDelete?.title }}</strong>?
       </v-card-text>
+      <!-- Кнопки -->
       <v-card-actions>
         <v-spacer />
         <v-btn color="red" @click="deleteServicePermissionData">Удалить</v-btn>
@@ -114,8 +117,8 @@ export default defineComponent({
       permissions: [] as Permission[],
       loading: false,
       headers: [
-        { title: 'Название', value: 'verbose_name' },
-        { title: 'Параметр', value: 'title' },
+        { title: 'Название', value: 'verbose_name', sortable: true },
+        { title: 'Параметр', value: 'title', sortable: true },
         { title: 'Действия', value: 'actions', sortable: false },
       ],
       createDialog: false,

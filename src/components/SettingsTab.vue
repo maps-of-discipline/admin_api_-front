@@ -12,7 +12,6 @@
           </v-btn>
         </div>
       </v-card-title>
-
       <v-card-text>
         <v-form ref="form" v-model="formValid">
           <v-row>
@@ -23,7 +22,6 @@
                 <strong>Название:</strong> {{ service.name }}
               </div>
             </v-col>
-
             <v-col cols="12" md="6">
               <v-text-field v-if="editing" v-model="editedService.verbose_name" label="Отображаемое имя (verbose_name)"
                 outlined :rules="[verboseNameRule]" />
@@ -34,7 +32,7 @@
           </v-row>
         </v-form>
       </v-card-text>
-
+      <!-- Кнопки -->
       <v-card-actions v-if="editing">
         <v-spacer />
         <v-btn :disabled="!formValid" color="primary" @click="updateServiceData">Сохранить</v-btn>
@@ -52,6 +50,7 @@
           <p class="mb-1">Чтобы удалить сервис, введите его название: <strong>{{ service.name }}</strong></p>
           <v-text-field v-model="deleteConfirmation" label="Введите название" />
         </v-card-text>
+        <!-- Кнопки -->
         <v-card-actions>
           <v-spacer />
           <v-btn color="red" :disabled="deleteConfirmation !== service.name" @click="deleteServiceData">
