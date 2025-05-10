@@ -3,7 +3,7 @@ import { type Service } from "../interfaces/service";
 import { AxiosError } from "axios";
 import type { Permission } from "../interfaces/permission";
 import type { Role } from "../interfaces/role";
-import type { RolePermission } from "../interfaces/rolepermission";
+import type { RolePermission } from "../interfaces/rolePermission";
 
 // Получить информацию о правах доступа сервиса
 export async function getServicePermissions(
@@ -58,13 +58,13 @@ export async function getServiceRolePermissions(
 
 // Добавить к роли право доступа
 export async function assingServiceRolePermission(
-  role_id: Role,
-  permission_id: Permission
+  role: Role,
+  permission: Permission
 ): Promise<IResponse<RolePermission>> {
   try {
     const response = await API.post(`/service-roles/assign-permission`, {
-      service_role_id: role_id,
-      permission_id: permission_id,
+      service_role_id: role.id,
+      permission_id: permission.id,
     });
     return { success: true };
   } catch (error) {
@@ -78,13 +78,13 @@ export async function assingServiceRolePermission(
 
 // Убрать у роли право доступа
 export async function revokeServiceRolePermission(
-  role_id: Role,
-  permission_id: Permission
+  role: Role,
+  permission: Permission
 ): Promise<IResponse<RolePermission>> {
   try {
     const response = await API.post(`/service-roles/revoke-permission`, {
-      service_role_id: role_id,
-      permission_id: permission_id,
+      service_role_id: role.id,
+      permission_id: permission.id,
     });
     return { success: true };
   } catch (error) {

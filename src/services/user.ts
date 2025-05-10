@@ -2,6 +2,7 @@ import { API, type IResponse } from "../services/api";
 import { type Service } from "../interfaces/service";
 import { AxiosError } from "axios";
 import type { User } from "../interfaces/user";
+import type { UserRole } from "../interfaces/userRole";
 import type { Role } from "../interfaces/role";
 
 // Получить информацию о пользователях сервиса
@@ -40,7 +41,7 @@ export async function getServiceUsers(
 export async function getServiceUserRoles(
   user: User,
   service: Service
-): Promise<IResponse<Role[]>> {
+): Promise<IResponse<UserRole[]>> {
   try {
     const response = await API.post(
       `/users/${user.id}/get_roles_from_service?service_name=${service.name}`,
@@ -59,13 +60,13 @@ export async function getServiceUserRoles(
 
 // Добавить пользователю роль сервиса
 export async function assingServiceUserRole(
-  service_roles_id: Role,
-  user_id: User
+  role: Role,
+  user: User
 ): Promise<IResponse<Role>> {
   try {
     const response = await API.post("user_service_roles", {
-      service_roles_id: service_roles_id,
-      user_id: user_id,
+      service_roles_id: role.id,
+      user_id: user.id,
     });
     const userServiceRole = response.data;
     return { success: true, data: userServiceRole };
@@ -80,13 +81,10 @@ export async function assingServiceUserRole(
 
 // Удалить у пользователя роль сервиса
 export async function revokeServiceUserRole(
-  service_user_role_id: Role
-): Promise<IResponse<Role>> {
+  userRole: UserRole
+): Promise<IResponse<UserRole>> {
   try {
-    const response = await API.delete(
-      `user_service_roles/${service_user_role_id}`,
-      {}
-    );
+    const response = await API.delete(`user_service_roles/${userRole.id}`, {});
     const userServiceRole = response.data;
     return { success: true, data: userServiceRole };
   } catch (error) {

@@ -8,8 +8,8 @@
           </v-btn>
         </div>
       </v-card-title>
-      <v-data-table-server :items-length="totalItems" :headers="headers" :items="filteredUsers" :loading="loading"
-        :items-per-page="itemsPerPage" :page="page" @update:page="onPageChange"
+      <v-data-table-server :items-length="String(totalItems)" :headers="headers" :items="filteredUsers"
+        :loading="loading" :items-per-page="itemsPerPage" :page="page" @update:page="onPageChange"
         @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице"
         :items-per-page-options="[5, 10, 100]" class="elevation-1">
         <template #item.fio="{ item }">
@@ -51,11 +51,11 @@
             <div class="ml-4 d-flex align-center">
               <!-- Название -->
               <span class="text-body-1" style="flex-grow: 1; display: flex; align-items: center;">
-                {{ role.verbose_name || role.title }}
+                {{ role.verbose_name || role.role }}
               </span>
               <!-- переключатель -->
-              <v-switch style="height: 56px;" :model-value="userRoles[role.id]"
-                @update:model-value="(val) => handleRoleToggle(role.id, val)" color="primary" />
+              <v-switch style="height: 56px;" :model-value="userRoles[role.id!]"
+                @update:model-value="(val) => handleRoleToggle(role.id!, val!)" color="primary" />
             </div>
           </div>
         </div>
@@ -79,7 +79,8 @@ import { getServiceRoles } from '../services/role';
 import { useToast } from "../composable/useToast";
 import type { Service } from '../interfaces/service';
 import type { User } from '../interfaces/user';
-import type { UserRole } from '../interfaces/userrole';
+import type { Role } from '../interfaces/role';
+import type { UserRole } from '../interfaces/userRole';
 
 export default defineComponent({
   name: 'UsersTab',
@@ -113,7 +114,7 @@ export default defineComponent({
       loadingRoles: false,
       page: 1,
       itemsPerPage: 5,
-      totalItems: 0,
+      totalItems: 0 as Number,
       ...useToast(),
 
     };
@@ -125,7 +126,7 @@ export default defineComponent({
       return this.users.filter(user =>
         user.surname.toLowerCase().includes(term) ||
         user.name.toLowerCase().includes(term) ||
-        user.login.toLowerCase().includes(term) ||
+        user.login!.toLowerCase().includes(term) ||
         user.email.toLowerCase().includes(term) ||
         user.role.toLowerCase().includes(term)
       );
@@ -133,7 +134,7 @@ export default defineComponent({
     filteredRoles() {
       if (!this.roleSearch.trim()) return this.roles;
       const term = this.roleSearch.toLowerCase();
-      return this.roles.filter(p =>
+      return this.roles.filter(role =>
         role.role.toLowerCase().includes(term) ||
         role.verbose_name.toLowerCase().includes(term)
       );
@@ -173,7 +174,7 @@ export default defineComponent({
             email: user.email,
             role: user.role,
           }));
-          this.totalItems = response.total
+          this.totalItems = response.total as Number
         } else {
           this.showToast(response.error || "Ошибка получения данных.", "error");
         }
@@ -215,7 +216,7 @@ export default defineComponent({
           const rolesState: Record<string, boolean> = {};
           const roleMap: Record<string, string> = {};
           for (const role of this.roles) {
-            rolesState[role.id] = assignedIds.has(role.id);
+            rolesState[role.id!] = assignedIds.has(role.id!);
           }
           for (const r of assigned) {
             roleMap[r.service_roles_id] = r.id;
@@ -235,7 +236,7 @@ export default defineComponent({
       this.userRoles[service_roles_id] = value;
       try {
         if (value) {
-          const response = await assingServiceUserRole(service_roles_id, this.editedUser.id);
+          const response = await assingServiceUserRole({ id: service_roles_id, role: '', verbose_name: '', service_id: '' }, { id: this.editedUser.id, email: '', name: '', patronymic: '', role: '', surname: '' });
           if (response.success) {
             const newUserRole = response.data as UserRole | undefined;
             if (newUserRole && newUserRole.id) {
@@ -254,7 +255,7 @@ export default defineComponent({
             this.userRoles[service_roles_id] = true;
             return;
           }
-          const response = await revokeServiceUserRole(userRoleId);
+          const response = await revokeServiceUserRole({ id: userRoleId, service_roles_id: '', user_id: '' });
           if (!response.success) {
             this.showToast(response.error || 'Ошибка удаления роли', 'error');
             this.userRoles[service_roles_id] = true;

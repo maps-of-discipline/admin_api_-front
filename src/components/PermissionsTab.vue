@@ -11,7 +11,7 @@
       </v-card-title>
 
       <v-data-table-server :items-per-page="itemsPerPage" :headers="headers" :items="filteredPermissions"
-        :items-length="totalItems" :loading="loading" :page="page" @update:page="onPageChange"
+        :items-length="String(totalItems)" :loading="loading" :page="page" @update:page="onPageChange"
         @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице"
         :items-per-page-options="[5, 10, 100]" class="elevation-1">
         <template #item.actions="{ item }">
@@ -140,7 +140,7 @@ export default defineComponent({
       permissionToDelete: null as Permission | null,
       page: 1,
       itemsPerPage: 5,
-      totalItems: 0,
+      totalItems: 0 as Number,
       ...useToast(),
     };
   },
@@ -185,7 +185,7 @@ export default defineComponent({
           this.itemsPerPage);
         if (response.success) {
           this.permissions = response.data as Permission[];
-          this.totalItems = response.total
+          this.totalItems = response.total as Number
         } else {
           this.showToast(response.error || 'Ошибка получения данных.', 'error');
         }

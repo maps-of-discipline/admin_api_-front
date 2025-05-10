@@ -9,8 +9,8 @@
           </v-btn>
         </div>
       </v-card-title>
-      <v-data-table-server :items-length="totalItems" :headers="headers" :items="filteredRoles" :loading="loading"
-        :items-per-page="itemsPerPage" :page="page" @update:page="onPageChange"
+      <v-data-table-server :items-length="String(totalItems)" :headers="headers" :items="filteredRoles"
+        :loading="loading" :items-per-page="itemsPerPage" :page="page" @update:page="onPageChange"
         @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице"
         :items-per-page-options="[5, 10, 100]" class="elevation-1">
         <template #item.actions="{ item }">
@@ -83,8 +83,8 @@
                 {{ perm.verbose_name || perm.title }}
               </span>
               <!-- переключатель -->
-              <v-switch style="height: 56px;" :model-value="rolePermissions[perm.id]"
-                @update:model-value="(val) => handlePermissionToggle(perm.id, val)" color="primary" />
+              <v-switch style="height: 56px;" :model-value="rolePermissions[perm.id!]"
+                @update:model-value="(val) => handlePermissionToggle(perm.id!, val!)" color="primary" />
             </div>
           </div>
         </div>
@@ -125,7 +125,8 @@ import { getServiceRoles } from '../services/role';
 import { useToast } from "../composable/useToast";
 import type { Service } from '../interfaces/service';
 import type { Role } from '../interfaces/role';
-import type { rolePermissions } from '../interfaces/rolepermissions';
+import type { Permission } from '../interfaces/permission';
+import type { RolePermission } from '../interfaces/rolePermission';
 import {
   createServiceRole,
   updateServiceRole,
@@ -173,7 +174,7 @@ export default defineComponent({
       permissionSearch: '',
       page: 1,
       itemsPerPage: 5,
-      totalItems: 0,
+      totalItems: 0 as Number,
       ...useToast(),
 
     };
@@ -228,7 +229,7 @@ export default defineComponent({
           this.itemsPerPage);
         if (response.success) {
           this.roles = (response.data as Role[])
-          this.totalItems = response.total
+          this.totalItems = response.total as Number
         } else {
           this.showToast(response.error || "Ошибка получения данных.", "error");
         }
@@ -293,7 +294,7 @@ export default defineComponent({
           const assignedIds = new Set(assigned.map(p => p.permission_id));
           const permissionsState: Record<string, boolean> = {};
           for (const perm of this.permissions) {
-            permissionsState[perm.id] = assignedIds.has(perm.id);
+            permissionsState[perm.id!] = assignedIds.has(perm.id!);
           }
           this.rolePermissions = permissionsState;
         } else {
@@ -311,13 +312,17 @@ export default defineComponent({
 
       try {
         if (value) {
-          const response = await assingServiceRolePermission(this.editedRole.id, permissionId);
+          const response = await assingServiceRolePermission({
+            id: this.editedRole.id, service_id: '', role: '', verbose_name: ''
+          }, { id: permissionId, title: '', verbose_name: '', service_id: '' });
           if (!response.success) {
             this.showToast(response.error || 'Ошибка назначения права', 'error');
             this.rolePermissions[permissionId] = false;
           }
         } else {
-          const response = await revokeServiceRolePermission(this.editedRole.id, permissionId);
+          const response = await revokeServiceRolePermission({
+            id: this.editedRole.id, service_id: '', role: '', verbose_name: ''
+          }, { id: permissionId, title: '', verbose_name: '', service_id: '' });
           if (!response.success) {
             this.showToast(response.error || 'Ошибка удаления права', 'error');
             this.rolePermissions[permissionId] = true;

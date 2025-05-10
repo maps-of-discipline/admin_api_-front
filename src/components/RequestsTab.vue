@@ -1,21 +1,4 @@
 <template>
-  <v-container fluid>
-    <v-card>
-      <v-card-title>{{ service.verbose_name }}</v-card-title>
-      <v-data-table :headers="headers" :items="requests" :loading="loading" items-per-page-text="Элементов на странице"
-        class="elevation-1">
-        <template #item.fio="{ item }">
-          {{ item.surname }} {{ item.name }} {{ item.patronymic }}
-        </template>
-        <template #no-data>
-          <v-alert type="info">
-            Нет заявок для отображения.
-          </v-alert>
-        </template>
-      </v-data-table>
-    </v-card>
-  </v-container>
-
   <!-- Toast -->
   <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000" location="left" multi-line>
     {{ snackbarMessage }}
@@ -32,7 +15,7 @@ import { useToast } from "../composable/useToast";
 import type { Service } from '../interfaces/service';
 
 export default defineComponent({
-  name: 'UsersTab',
+  name: 'RequestsTab',
   props: {
     service: {
       type: Object as () => Service,
