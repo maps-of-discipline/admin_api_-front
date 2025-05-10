@@ -1,52 +1,65 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import MainPage from '../views/MainPage.vue';
-import LoginPage from '../views/FormAuth.vue';
-import UserWork from '../views/UserWork.vue';
-import AuthService from '../views/AuthService.vue';
-import AuthServiceByEmail from '../views/AuthServiceByEmail.vue';
-// import PermissionsWork from '../views/PermissionsWork.vue';
+import { createRouter, createWebHistory } from "vue-router";
+import AuthPage from "@/pages/Auth.vue";
+import AuthEmailPage from "@/pages/AuthByEmail.vue";
+import LoginPage from "@/pages/Login.vue";
+import LoginEmailPage from "@/pages/LoginByEmail.vue";
+import MainPage from "@/pages/Main.vue";
+import ServiceDetailsPage from "@/pages/ServiceDetails.vue";
 
 const routes = [
   {
-    path: '/',
-    name: 'Login',
+    path: "/",
+    name: "MainPage",
+    component: MainPage,
+    meta: { title: "Главная страница", requiresAuth: true },
+  },
+  {
+    path: "/service/:serviceId",
+    name: "ServiceDetailsPage",
+    component: ServiceDetailsPage,
+    meta: { title: "Сервис", requiresAuth: true },
+    props: true,
+  },
+  {
+    path: "/auth",
+    name: "AuthPage",
+    component: AuthPage,
+    meta: { title: "Авторизация по ЕУЗ" },
+  },
+  {
+    path: "/auth/email",
+    name: "AuthEmailPage",
+    component: AuthEmailPage,
+    meta: { title: "Авторизация по почте" },
+  },
+  {
+    path: "/login",
+    name: "LoginPage",
     component: LoginPage,
-    meta: { title: "Авторизация" }
+    meta: { title: "Авторизация по ЕУЗ" },
   },
   {
-    path: '/user',
-    name: 'UserWork',
-    component: UserWork,
-    meta: { title: "Пользователи" }
+    path: "/login/email",
+    name: "LoginEmailPage",
+    component: LoginEmailPage,
+    meta: { title: "Авторизация по почте" },
   },
-  {
-    path: '/loginServise',
-    name: 'AuthService',
-    component: AuthService,
-    meta: { title: "Сервис авторизации" }
-  },
-  {
-    path: '/loginServise/email',
-    name: 'AuthServiceByEmail',
-    component: AuthServiceByEmail,
-    meta: { title: "Авторизация по Email" }
-  },
-  // {
-  //   path: '/user/permissions',
-  //   name: 'PermissionsWork',
-  //   component: PermissionsWork,
-  //   meta: { title: "Права доступа" }
-  // },
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL || '/'),
+  history: createWebHistory(import.meta.env.BASE_URL || "/"),
   routes,
 });
 
 router.beforeEach((to, from, next) => {
-  const defaultTitle = "Мое приложение";
-  document.title = (to.meta.title as string) || defaultTitle;
+  const defaultTitle = "Админ API";
+  document.title = (to.meta.title as string) + " | Админ API" || defaultTitle;
+  // Проверка авторизации
+  const isAuthenticated = !!localStorage.getItem("access_token");
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next("/login");
+    return;
+  }
   next();
 });
 
