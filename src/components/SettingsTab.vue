@@ -19,14 +19,16 @@
               <v-text-field v-if="editing" v-model="editedService.name" label="Название (name)" outlined
                 :rules="[nameRule]" />
               <div v-else>
-                <strong>Название:</strong> {{ service.name }}
+                <strong>Название:</strong>
+                <span v-html="highlightMatch(service.name)"></span>
               </div>
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field v-if="editing" v-model="editedService.verbose_name" label="Отображаемое имя (verbose_name)"
                 outlined :rules="[verboseNameRule]" />
               <div v-else>
-                <strong>Отображаемое имя:</strong> {{ service.verbose_name }}
+                <strong>Отображаемое имя:</strong>
+                <span v-html="highlightMatch(service.verbose_name)"></span>
               </div>
             </v-col>
           </v-row>
@@ -84,6 +86,10 @@ export default defineComponent({
       type: Object as () => Service,
       required: true,
     },
+    search: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -106,6 +112,12 @@ export default defineComponent({
     },
   },
   methods: {
+    highlightMatch(text: string): string {
+      if (!this.search) return text;
+      const escaped = this.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Экранирование спецсимволов
+      const regex = new RegExp(`(${escaped})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>'); // Оборачиваем совпадения в <mark>
+    },
     enableEditing() {
       this.editedService = { ...this.service }
       this.editing = true
@@ -156,3 +168,4 @@ export default defineComponent({
   },
 })
 </script>
+
