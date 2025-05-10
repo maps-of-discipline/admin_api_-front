@@ -88,3 +88,6 @@ export async function deleteServiceRole(
     return { success: false, error: errorMessage };
   }
 }
+
+
+// Обновить роль у пользователя

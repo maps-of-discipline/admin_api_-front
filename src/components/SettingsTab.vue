@@ -3,7 +3,7 @@
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         {{ service.verbose_name }}
-        <div>
+        <div class="px-2">
           <v-btn icon v-if="!editing" @click="enableEditing" class="mr-2">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
@@ -168,4 +168,3 @@ export default defineComponent({
   },
 })
 </script>
-

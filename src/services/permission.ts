@@ -26,7 +26,8 @@ export async function getServicePermissions(
       });
     }
     const permissions = response.data.data;
-    return { success: true, data: permissions };
+    const total = response.data.total;
+    return { success: true, data: permissions, total };
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
     const errorMessage =

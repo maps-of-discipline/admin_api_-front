@@ -5,12 +5,24 @@ import type { User } from "../interfaces/user";
 
 // Получить информацию о пользователях сервиса
 export async function getServiceUsers(
-  params: Service
+  params: Service,
+  page?: number,
+  itemsPerPage?: number
 ): Promise<IResponse<User[]>> {
   try {
-    const response = await API.post("/users/filters", {
-      service_name: params.name,
-    });
+    let response;
+    if (page && itemsPerPage) {
+      response = await API.post(
+        `/users/filters?page=${page}&size=${itemsPerPage}`,
+        {
+          service_name: params.name,
+        }
+      );
+    } else {
+      response = await API.post("/users/filters", {
+        service_name: params.name,
+      });
+    }
     const users = response.data.data;
     return { success: true, data: users };
   } catch (error) {

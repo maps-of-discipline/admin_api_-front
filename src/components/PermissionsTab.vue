@@ -4,29 +4,29 @@
       <v-card-title class="d-flex justify-space-between align-center">
         {{ service.verbose_name }}
         <div class="px-2">
-          <v-btn icon @click="openCreatePermissionDialog" color="success">
+          <v-btn icon @click="openCreatePermissionDialog" color="success" density="comfortable">
             <v-icon>mdi-plus</v-icon>
           </v-btn>
         </div>
       </v-card-title>
 
-      <v-data-table :headers="headers" :items="filteredPermissions" :loading="loading"
-        items-per-page-text="Элементов на странице" class="elevation-1">
+      <v-data-table-server :items-per-page="itemsPerPage" :headers="headers" :items="filteredPermissions"
+        :items-length="totalItems" :loading="loading" :page="page" @update:page="onPageChange"
+        @update:items-per-page="onItemsPerPageChange" items-per-page-text="Элементов на странице" class="elevation-1">
         <template #item.actions="{ item }">
           <td class="actions-cell">
-            <v-btn icon @click="openEditPermissionDialog(item)">
+            <v-btn icon @click="openEditPermissionDialog(item)" density="comfortable">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn icon @click="openDeletePermissionDialog(item)" color="error">
+            <v-btn icon @click="openDeletePermissionDialog(item)" color="error" density="comfortable">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
         </template>
-
         <template #no-data>
           <v-alert type="info">Нет прав доступа для отображения.</v-alert>
         </template>
-      </v-data-table>
+      </v-data-table-server>
     </v-card>
   </v-container>
 
@@ -166,7 +166,17 @@ export default defineComponent({
     },
   },
   methods: {
+    onPageChange(page: number) {
+      this.page = page;
+      this.getServicePermissionsData();
+    },
+    onItemsPerPageChange(itemsPerPage: number) {
+      this.itemsPerPage = itemsPerPage;
+      this.page = 1
+      this.getServicePermissionsData();
+    },
     async getServicePermissionsData() {
+      this.loading = true;
       if (!this.service.name) return;
       try {
         const response = await getServicePermissions({ id: "", name: this.service.name, verbose_name: "" },
@@ -174,11 +184,14 @@ export default defineComponent({
           this.itemsPerPage);
         if (response.success) {
           this.permissions = response.data as Permission[];
+          this.totalItems = response.total
         } else {
           this.showToast(response.error || 'Ошибка получения данных.', 'error');
         }
       } catch {
         this.showToast('Ошибка при запросе.', 'error');
+      } finally {
+        this.loading = false;
       }
     },
     openCreatePermissionDialog() {

@@ -208,6 +208,14 @@ export default defineComponent({
     },
   },
   methods: {
+    onPageChange(page: number) {
+      this.page = page;
+      this.getServiceRolesData();
+    },
+    onItemsPerPageChange(itemsPerPage: number) {
+      this.itemsPerPage = itemsPerPage;
+      this.getServiceRolesData();
+    },
     async getServiceRolesData() {
       if (!this.service.name) {
         return;
@@ -225,14 +233,6 @@ export default defineComponent({
       } catch (error) {
         this.showToast("Ошибка при запросе.", "error");
       }
-    },
-    onPageChange(page: number) {
-      this.page = page;
-      this.getServiceRolesData();
-    },
-    onItemsPerPageChange(itemsPerPage: number) {
-      this.itemsPerPage = itemsPerPage;
-      this.getServiceRolesData();
     },
     openCreateRoleDialog() {
       this.newRole = { service_id: this.service.id, role: '', verbose_name: '' };
