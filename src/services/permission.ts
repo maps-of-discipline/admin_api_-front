@@ -7,12 +7,24 @@ import type { RolePermission } from "../interfaces/rolepermission";
 
 // Получить информацию о правах доступа сервиса
 export async function getServicePermissions(
-  params: Service
+  params: Service,
+  page?: number,
+  itemsPerPage?: number
 ): Promise<IResponse<Permission[]>> {
   try {
-    const response = await API.post("/permission/filters", {
-      service_name: params.name,
-    });
+    let response;
+    if (page && itemsPerPage) {
+      response = await API.post(
+        `/permission/filters?page=${page}&size=${itemsPerPage}`,
+        {
+          service_name: params.name,
+        }
+      );
+    } else {
+      response = await API.post("/permission/filters", {
+        service_name: params.name,
+      });
+    }
     const permissions = response.data.data;
     return { success: true, data: permissions };
   } catch (error) {

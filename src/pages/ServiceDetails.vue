@@ -45,7 +45,7 @@ import { getServiceDataForm } from "../forms/serviceForms";
 import { useToast } from "../composable/useToast";
 import { getService } from "../services/service";
 import UsersTab from "../components/UsersTab.vue";
-import RolesTab from "../components/RolesTabs.vue";
+import RolesTab from "../components/RolesTab.vue";
 import PermissionsTab from "../components/PermissionsTab.vue";
 import SettingsTab from "../components/SettingsTab.vue";
 import RequestsTab from "../components/RequestsTab.vue";

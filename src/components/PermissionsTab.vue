@@ -3,20 +3,24 @@
     <v-card>
       <v-card-title class="d-flex justify-space-between align-center">
         {{ service.verbose_name }}
-        <v-btn icon @click="openCreatePermissionDialog" color="success">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
+        <div class="px-2">
+          <v-btn icon @click="openCreatePermissionDialog" color="success">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </div>
       </v-card-title>
 
-      <v-data-table :headers="headers" :items="permissions" :loading="loading"
+      <v-data-table :headers="headers" :items="filteredPermissions" :loading="loading"
         items-per-page-text="Элементов на странице" class="elevation-1">
         <template #item.actions="{ item }">
-          <v-btn icon @click="openEditPermissionDialog(item)">
-            <v-icon>mdi-pencil</v-icon>
-          </v-btn>
-          <v-btn icon @click="openDeletePermissionDialog(item)" color="error">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
+          <td class="actions-cell">
+            <v-btn icon @click="openEditPermissionDialog(item)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon @click="openDeletePermissionDialog(item)" color="error">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </td>
         </template>
 
         <template #no-data>
@@ -111,6 +115,10 @@ export default defineComponent({
       type: Object as () => Service,
       required: true,
     },
+    search: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -119,7 +127,7 @@ export default defineComponent({
       headers: [
         { title: 'Название', value: 'verbose_name', sortable: true },
         { title: 'Параметр', value: 'title', sortable: true },
-        { title: 'Действия', value: 'actions', sortable: false },
+        { title: 'Действия', value: 'actions', sortable: false, width: '150px' },
       ],
       createDialog: false,
       editDialog: false,
@@ -129,6 +137,9 @@ export default defineComponent({
       newPermission: {} as Permission,
       editedPermission: {} as Permission,
       permissionToDelete: null as Permission | null,
+      page: 1,
+      itemsPerPage: 10,
+      totalItems: 0,
       ...useToast(),
     };
   },
@@ -138,6 +149,14 @@ export default defineComponent({
     },
     verboseNameRule() {
       return (v: string) => /^[А-Яа-яЁё\s]+$/.test(v) || 'Только кириллица';
+    },
+    filteredPermissions(): Permission[] {
+      if (!this.search.trim()) return this.permissions;
+      const term = this.search.toLowerCase();
+      return this.permissions.filter(permission =>
+        permission.title.toLowerCase().includes(term) ||
+        permission.verbose_name.toLowerCase().includes(term)
+      );
     },
   },
   watch: {
@@ -150,11 +169,9 @@ export default defineComponent({
     async getServicePermissionsData() {
       if (!this.service.name) return;
       try {
-        const response = await getServicePermissions({
-          id: '',
-          name: this.service.name,
-          verbose_name: '',
-        });
+        const response = await getServicePermissions({ id: "", name: this.service.name, verbose_name: "" },
+          this.page,
+          this.itemsPerPage);
         if (response.success) {
           this.permissions = response.data as Permission[];
         } else {
@@ -242,3 +259,15 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.actions-cell {
+  white-space: nowrap;
+  display: flex;
+  gap: 8px;
+}
+
+.v-data-table td {
+  padding: 8px;
+}
+</style>

@@ -10,6 +10,7 @@ declare module 'vue' {
     BasePage: typeof import('./components/BasePage.vue')['default']
     PermissionsTab: typeof import('./components/PermissionsTab.vue')['default']
     RequestsTab: typeof import('./components/RequestsTab.vue')['default']
+    RolesTab: typeof import('./components/RolesTab.vue')['default']
     RolesTabs: typeof import('./components/RolesTabs.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
