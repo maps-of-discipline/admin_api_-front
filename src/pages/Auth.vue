@@ -133,7 +133,6 @@ export default defineComponent({
           this.isModalVisible = false;
           this.showToast("Успешный вход!", "success");
           this.returnUrl = `${this.returnUrl}?access=${localStorage.getItem('access_token')}&refresh=${localStorage.getItem('refresh_token')}`
-          await logout()
           // переход на внешний сайт
           window.location.href = this.returnUrl;
         } else {

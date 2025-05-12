@@ -125,7 +125,6 @@ export default defineComponent({
           this.verificationError = false;
           this.isModalVisible = false;
           this.showToast("Успешный вход", "success");
-          await logout()
           // переход на внешний сайт
           window.location.href = this.returnUrl;
         } else {
